@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPrideWont — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0d0;
+    --ink: #1a1714;
+    --ink-light: #3d3730;
+    --red: #c4342d;
+    --red-dark: #9a2820;
+    --green: #2d6b4a;
+    --green-light: #3a8c60;
+    --amber: #c47d1a;
+    --blue-steel: #4a6277;
+    --purple-muted: #6b5278;
+    --divider: #c9bfad;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--ink);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .logo span { color: var(--red); }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .user-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cream);
+    border: 1.5px solid var(--cream);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+  .menu-btn {
+    color: var(--cream);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  /* COUNTDOWN STRIP */
+  .countdown {
+    background: var(--red);
+    color: var(--cream);
+    text-align: center;
+    padding: 0.75rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .countdown::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      rgba(0,0,0,0.06) 10px,
+      rgba(0,0,0,0.06) 20px
+    );
+  }
+  .countdown-inner {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .countdown-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    line-height: 1;
+  }
+  .countdown-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.85;
+  }
+
+  /* SECTION HEADERS */
+  .section-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-light);
+    padding: 1rem 1.25rem 0.4rem;
+    border-bottom: 2px solid var(--ink);
+    margin: 0 1.25rem;
+    text-transform: uppercase;
+  }
+
+  /* FIGHTER CARDS */
+  .cards { padding: 0.75rem 1.25rem; }
+
+  .fighter-card {
+    background: white;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform 0.15s ease;
+  }
+  .fighter-card:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1.5px solid var(--divider);
+  }
+  .card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .card-name.jake { color: var(--blue-steel); }
+  .card-name.calder { color: var(--amber); }
+  .card-name.son { color: var(--purple-muted); }
+
+  .streak {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+  }
+  .streak.hot {
+    background: var(--green);
+    color: var(--cream);
+  }
+  .streak.cold {
+    background: var(--red);
+    color: var(--cream);
+  }
+
+  .card-body { padding: 0.6rem 0.75rem; }
+
+  .goal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .goal-row:last-child { margin-bottom: 0; }
+
+  .goal-type {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    width: 70px;
+    flex-shrink: 0;
+    color: var(--ink-light);
+  }
+  .goal-bar-wrap {
+    flex: 1;
+    height: 14px;
+    background: var(--cream-dark);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--divider);
+  }
+  .goal-bar {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.6s ease;
+  }
+  .goal-bar.done { background: var(--green); }
+  .goal-bar.progress { background: var(--ink); }
+  .goal-bar.behind { background: var(--red); }
+
+  .goal-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    width: 36px;
+    text-align: right;
+    line-height: 1;
+  }
+  .goal-count.done { color: var(--green); }
+  .goal-count.behind { color: var(--red); }
+
+  .card-footer {
+    background: var(--cream);
+    padding: 0.4rem 0.75rem;
+    border-top: 1.5px solid var(--divider);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    color: var(--ink-light);
+    letter-spacing: 0.03em;
+    display: flex;
+    gap: 1rem;
+  }
+  .card-footer strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* FEED */
+  .feed { padding: 0.5rem 1.25rem 1.5rem; }
+
+  .feed-item {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .feed-item:last-child { border-bottom: none; }
+
+  .feed-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 0.6rem;
+  }
+  .feed-dot.jake { background: var(--blue-steel); }
+  .feed-dot.calder { background: var(--amber); }
+  .feed-dot.son { background: var(--purple-muted); }
+
+  .feed-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .feed-who {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .feed-what {
+    font-size: 0.78rem;
+    color: var(--ink-light);
+  }
+  .feed-stats {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 0.75rem;
+  }
+  .feed-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .feed-meta {
+    font-size: 0.65rem;
+    color: var(--ink-light);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.03em;
+  }
+
+  /* BOTTOM NAV (mobile) */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--ink);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    border-top: 2px solid var(--red);
+    z-index: 50;
+  }
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    text-decoration: none;
+    color: rgba(245,240,232,0.5);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.15s;
+  }
+  .bottom-nav a.active { color: var(--cream); }
+  .bottom-nav a .icon { font-size: 1.2rem; }
+
+  /* Spacer for fixed bottom nav */
+  .nav-spacer { height: 4rem; }
+
+  /* Desktop: max-width container */
+  @media (min-width: 640px) {
+    .page-wrap { max-width: 480px; margin: 0 auto; }
+    .bottom-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <!-- NAV -->
+  <nav>
+    <div class="logo">MY<span>PRIDE</span>WONT</div>
+    <div class="nav-right">
+      <div class="user-badge">Jake</div>
+      <div class="menu-btn">&#9776;</div>
+    </div>
+  </nav>
+
+  <!-- COUNTDOWN -->
+  <div class="countdown">
+    <div class="countdown-inner">
+      <span class="countdown-num">47</span>
+      <span class="countdown-label">weeks to race day</span>
+    </div>
+  </div>
+
+  <!-- THIS WEEK -->
+  <div class="section-header">This Week</div>
+
+  <div class="cards">
+    <!-- JAKE -->
+    <div class="fighter-card">
+      <div class="card-header">
+        <div class="card-name jake">JAKE</div>
+        <div class="streak hot">6 wk streak</div>
+      </div>
+      <div class="card-body">
+        <div class="goal-row">
+          <div class="goal-type">Run</div>
+          <div class="goal-bar-wrap"><div class="goal-bar progress" style="width: 66%"></div></div>
+          <div class="goal-count">2/3</div>
+        </div>
+        <div class="goal-row">
+          <div class="goal-type">Strength</div>
+          <div class="goal-bar-wrap"><div class="goal-bar done" style="width: 100%"></div></div>
+          <div class="goal-count done">2/2</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span><strong>11.2</strong> mi</span>
+        <span><strong>3h 15m</strong> total</span>
+        <span><strong>8:12</strong> avg pace</span>
+      </div>
+    </div>
+
+    <!-- CALDER -->
+    <div class="fighter-card">
+      <div class="card-header">
+        <div class="card-name calder">CALDER</div>
+        <div class="streak cold">0 wk streak</div>
+      </div>
+      <div class="card-body">
+        <div class="goal-row">
+          <div class="goal-type">Run</div>
+          <div class="goal-bar-wrap"><div class="goal-bar behind" style="width: 25%"></div></div>
+          <div class="goal-count behind">1/4</div>
+        </div>
+        <div class="goal-row">
+          <div class="goal-type">Bike</div>
+          <div class="goal-bar-wrap"><div class="goal-bar progress" style="width: 60%"></div></div>
+          <div class="goal-count">3/5</div>
+        </div>
+        <div class="goal-row">
+          <div class="goal-type">Yoga</div>
+          <div class="goal-bar-wrap"><div class="goal-bar behind" style="width: 0%"></div></div>
+          <div class="goal-count behind">0/2</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span><strong>4.1</strong> mi run</span>
+        <span><strong>12.6</strong> mi bike</span>
+        <span><strong>5h 20m</strong> total</span>
+      </div>
+    </div>
+
+    <!-- SON -->
+    <div class="fighter-card">
+      <div class="card-header">
+        <div class="card-name son">SON</div>
+        <div class="streak hot">3 wk streak</div>
+      </div>
+      <div class="card-body">
+        <div class="goal-row">
+          <div class="goal-type">Run</div>
+          <div class="goal-bar-wrap"><div class="goal-bar done" style="width: 100%"></div></div>
+          <div class="goal-count done">3/3</div>
+        </div>
+        <div class="goal-row">
+          <div class="goal-type">Swim</div>
+          <div class="goal-bar-wrap"><div class="goal-bar progress" style="width: 0%"></div></div>
+          <div class="goal-count">0/1</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span><strong>16.8</strong> mi</span>
+        <span><strong>2h 40m</strong> total</span>
+        <span><strong>7:38</strong> avg pace</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT -->
+  <div class="section-header">Recent</div>
+
+  <div class="feed">
+    <div class="feed-item">
+      <div class="feed-dot son"></div>
+      <div class="feed-text">
+        <div class="feed-who">Son</div>
+        <div class="feed-what">Evening run — Riverside Park</div>
+      </div>
+      <div class="feed-stats">
+        <div class="feed-num">6.2 mi</div>
+        <div class="feed-meta">48:30 · 7:49/mi · Today</div>
+      </div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-dot jake"></div>
+      <div class="feed-text">
+        <div class="feed-who">Jake</div>
+        <div class="feed-what">Upper body + core</div>
+      </div>
+      <div class="feed-stats">
+        <div class="feed-num">45 min</div>
+        <div class="feed-meta">Strength · Today</div>
+      </div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-dot calder"></div>
+      <div class="feed-text">
+        <div class="feed-who">Calder</div>
+        <div class="feed-what">Commute to work</div>
+      </div>
+      <div class="feed-stats">
+        <div class="feed-num">4.2 mi</div>
+        <div class="feed-meta">18 min · Bike · Yesterday</div>
+      </div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-dot jake"></div>
+      <div class="feed-text">
+        <div class="feed-who">Jake</div>
+        <div class="feed-what">Easy pace — neighborhood loop</div>
+      </div>
+      <div class="feed-stats">
+        <div class="feed-num">5.0 mi</div>
+        <div class="feed-meta">41:15 · 8:15/mi · Yesterday</div>
+      </div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-dot son"></div>
+      <div class="feed-text">
+        <div class="feed-who">Son</div>
+        <div class="feed-what">Tempo intervals</div>
+      </div>
+      <div class="feed-stats">
+        <div class="feed-num">5.5 mi</div>
+        <div class="feed-meta">40:07 · 7:18/mi · 2 days ago</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-spacer"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="#" class="active">
+    <span class="icon">&#9632;</span>
+    Home
+  </a>
+  <a href="#">
+    <span class="icon">&#9633;</span>
+    Calendar
+  </a>
+  <a href="#">
+    <span class="icon">&#9776;</span>
+    Log
+  </a>
+  <a href="#">
+    <span class="icon">&#9650;</span>
+    Goals
+  </a>
+</div>
+
+</body>
+</html>

@@ -48,7 +48,7 @@ Single shared password — no usernames, no accounts. A login page accepts the p
 | notes         | String?  |                                             |
 | durationSec   | Int      | Always required                            |
 | distanceMi    | Float?   | Null for strength/yoga                     |
-| paceSecPerMi  | Int?     | Computed, runs only                        |
+| paceSecPerMi  | Int?     | Computed and stored at write time, runs only |
 | elevGainFt    | Float?   | From sync                                  |
 | avgHeartRate  | Int?     | From sync                                  |
 | maxHeartRate  | Int?     | From sync                                  |
@@ -98,11 +98,11 @@ Shared password input. Sets session cookie on success.
 - Current streak per person (weeks without a shame mark)
 
 ### Calendar
-- Monthly view, all 3 users color-coded
-- Activity type dots on days (run, bike, strength, yoga, etc.)
-- Shame marks (red) on weeks where goals were missed
-- Click a day to see that day's activities for everyone
-- Week rows show goal completion status
+Scrollable weekly tape with "Today" button that centers the current week. Shows 5 weeks at a time with top/bottom fade to indicate scroll.
+
+- **Past weeks:** Day grid with activity pills (initial + type + distance). Week header shows earned/failed stamps per person.
+- **Current week:** Expanded day grid with checkmark validation on completed activities. Goal tally below showing progress against each composable goal (e.g. "J: Run 3mi 2/2, Run 4mi 0/1"). Today column highlighted.
+- **Future weeks:** No day grid — goal banners spanning the full width showing each person's plan as frequency targets (e.g. "J | Run 3mi ×2").
 
 ### Activity Log
 - Filterable list of all activities (by person, type, date range)
@@ -111,11 +111,26 @@ Shared password input. Sets session cookie on success.
 - "+ Log Activity" button for manual entry form
 - "Sync" button for Strava OAuth flow and activity import
 
-### Goals
-- View current active goals for each person
-- Add/edit/end goals with activity type, frequency, optional distance/duration targets, start/end dates
-- Visual timeline showing how goals ramp up over time
-- Historical shame mark tally per person
+### Goals (two tabs: Plan View / Import Plans)
+
+**Plan View:**
+- Per-person cards with timeline visualization showing goals as horizontal bars across months
+- Red "NOW" marker on timeline to show current position
+- Shame mark tally badge per person
+- "+ Add Goal" inline form on each card for quick single-goal entry (activity type, distance, frequency, date range)
+
+**Import Plans:**
+- One card per person with a monospace text editor
+- "Upload File" button to load a `.txt` plan file per person
+- "Apply Plan" button to parse and create WeeklyGoals
+- Plan file format (one goal per line):
+  ```
+  run 3mi x2, mar 23 - may 31
+  run 4mi x1, mar 23 - may 31
+  strength x2, mar 23           # no end = ongoing
+  run 5mi x2, jun 1 - aug 31   # ramp up phase
+  ```
+- Can also paste/edit directly in the text area
 
 ### Activity Detail
 - Full stats: distance, duration, pace, elevation, HR, calories
@@ -125,6 +140,25 @@ Shared password input. Sets session cookie on success.
 
 ### Navigation
 Top nav bar: logo/name, Dashboard, Calendar, Activity Log, Goals, user picker dropdown.
+
+### Floating Action Button
+Red "+" FAB in bottom-right corner (above bottom nav) on every page. Opens the manual activity entry form (dark full-screen modal).
+
+### Design System
+Vintage athletic club aesthetic. See `docs/superpowers/mockups/` for reference HTML mockups.
+- **Fonts:** Bebas Neue (headers), Barlow Condensed (labels/badges), Barlow (body)
+- **Colors:** Cream paper background (#f5f0e8), ink (#1a1714), red (#c4342d) for shame/accents, green (#2d6b4a) for success. User colors: Jake (steel blue #4a6277), Calder (amber #c47d1a), Son (muted purple #6b5278).
+- **Cards:** White background, 2px ink border, 3px hard box-shadow. No soft drop-shadows.
+- **Texture:** Subtle noise overlay on backgrounds.
+- **Login button:** "GET IN ME" (inside joke).
+
+### Mobile-First UI
+All pages must be mobile-friendly — this is primarily a phone app for checking on the go. Tailwind responsive utilities throughout. Key considerations:
+- Nav bar collapses to hamburger menu on mobile
+- Dashboard cards stack vertically
+- Calendar adapts to week view on small screens
+- Activity log rows are touch-friendly with swipe-to-expand
+- Manual entry form is thumb-reachable
 
 ## Signal Integration
 
@@ -191,6 +225,7 @@ Calder, I didn't catch that. Try something like: ran 5mi 42min
 
 OAuth 2.0 flow for Jake and Son.
 
+### Manual Sync
 1. User clicks "Sync" on Activity Log page
 2. If no token: redirect to Strava OAuth consent → store encrypted token
 3. If token exists: refresh if expired, then proceed
@@ -202,6 +237,16 @@ OAuth 2.0 flow for Jake and Son.
    - Save Activity + Splits to DB
 6. Notify worker for each new activity (Signal messages)
 7. Show import summary: "Synced 3 new activities"
+
+### Automatic Sync (Worker Cron)
+The worker runs automatic Strava syncs for all connected users on this schedule (all times ET):
+- 10:00 AM ET
+- 3:00 PM ET (noon PT)
+- 5:00 PM ET (afternoon)
+- 10:00 PM ET
+- 1:00 AM ET (10:00 PM PT)
+
+Same sync logic as manual — fetch since last sync, dedup, save, notify Signal. Failures are logged silently (no Signal spam for sync errors).
 
 Strava provides: distance, duration, pace, splits, elevation, HR, calories, route polyline, activity type.
 

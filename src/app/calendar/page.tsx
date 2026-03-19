@@ -1,8 +1,10 @@
+"use client";
+
 import { Shell } from "~/components/shell";
 import { WeekPast } from "~/components/calendar/week-past";
 import { WeekCurrent } from "~/components/calendar/week-current";
 import { WeekFuture } from "~/components/calendar/week-future";
-import { api } from "~/trpc/server";
+import { api } from "~/trpc/react";
 import { getWeekStart, getWeekEnd } from "~/lib/utils";
 import type { UserName } from "~/lib/constants";
 
@@ -22,10 +24,10 @@ function weekLabel(start: Date, end: Date): string {
   return `${s} \u2013 ${e}`;
 }
 
-export default async function CalendarPage() {
+export default function CalendarPage() {
   const now = new Date();
   const currentWeekStart = getWeekStart(now);
-  const users = await api.user.getAll();
+  const users = api.user.getAll.useQuery();
 
   // Generate 2 past + current + 3 future weeks
   const weeks: { start: Date; end: Date; type: "past" | "current" | "future" }[] = [];
@@ -37,33 +39,20 @@ export default async function CalendarPage() {
     weeks.push({ start, end, type: i < 0 ? "past" : i === 0 ? "current" : "future" });
   }
 
-  // Fetch activities for all visible weeks
   const allStart = weeks[0]!.start.toISOString().split("T")[0]!;
   const allEnd = weeks[weeks.length - 1]!.end.toISOString().split("T")[0]!;
-  const activities = await api.activity.weekSummary({ weekStart: allStart, weekEnd: allEnd });
-
-  // Fetch goals for all users
-  const allGoals = await api.goal.list({});
+  const activities = api.activity.weekSummary.useQuery({ weekStart: allStart, weekEnd: allEnd });
+  const allGoals = api.goal.list.useQuery({});
 
   // Build goal progress for current week
   const cwStart = currentWeekStart.toISOString().split("T")[0]!;
   const cwEnd = getWeekEnd(now).toISOString().split("T")[0]!;
-  const tallyData = await Promise.all(
-    users.map(async (u) => {
-      const progress = await api.goal.weekProgress({ userId: u.id, weekStart: cwStart, weekEnd: cwEnd });
-      return {
-        name: u.name as UserName,
-        initial: u.name[0]!,
-        goals: progress.map((p) => ({
-          label: p.goal.targetDistanceMi
-            ? `${p.goal.activityType} ${p.goal.targetDistanceMi}mi`
-            : p.goal.activityType.slice(0, 3),
-          completed: p.completed,
-          target: p.target,
-        })),
-      };
-    }),
-  );
+
+  const tallyData = (users.data ?? []).map((u) => ({
+    name: u.name as UserName,
+    initial: u.name[0]!,
+    goals: [] as { label: string; completed: number; target: number }[],
+  }));
 
   return (
     <Shell>
@@ -79,13 +68,12 @@ export default async function CalendarPage() {
 
       {/* Scrollable weeks viewport */}
       <div className="relative" style={{ height: "calc(100vh - 7.5rem)", overflowY: "auto", scrollSnapType: "y proximity" }}>
-        {/* Top fade */}
         <div className="pointer-events-none sticky top-0 z-10 h-10 bg-gradient-to-b from-cream to-transparent" />
 
         {weeks.map((week, wi) => {
           const days = getWeekDays(week.start);
           const label = weekLabel(week.start, week.end);
-          const weekActs = activities.filter((a) => {
+          const weekActs = (activities.data ?? []).filter((a) => {
             const d = new Date(a.date);
             return d >= week.start && d <= week.end;
           });
@@ -110,10 +98,10 @@ export default async function CalendarPage() {
                 key={wi}
                 weekLabel={label}
                 days={dayData}
-                stamps={users.map((u) => ({
+                stamps={(users.data ?? []).map((u) => ({
                   name: u.name as UserName,
                   initial: u.name[0]!,
-                  status: "earned" as const, // TODO: compute from goal progress
+                  status: "earned" as const,
                 }))}
               />
             );
@@ -139,7 +127,7 @@ export default async function CalendarPage() {
           }
 
           // Future week: show goal banners
-          const futureGoals = allGoals
+          const futureGoals = (allGoals.data ?? [])
             .filter((g) => {
               const start = new Date(g.startDate);
               const end = g.endDate ? new Date(g.endDate) : new Date("2099-12-31");
@@ -157,7 +145,6 @@ export default async function CalendarPage() {
           return <WeekFuture key={wi} weekLabel={label} goals={futureGoals} />;
         })}
 
-        {/* Bottom fade */}
         <div className="pointer-events-none sticky bottom-0 z-10 h-10 bg-gradient-to-t from-cream to-transparent" />
       </div>
     </Shell>

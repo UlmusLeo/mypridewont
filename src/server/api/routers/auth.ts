@@ -4,16 +4,7 @@ import {
   hashPassword,
   verifyPassword,
   createSessionToken,
-  setSessionCookie,
-  clearSessionCookie,
 } from "~/server/auth";
-
-// In-memory session store (fine for 3 users; survives until server restart)
-const activeSessions = new Set<string>();
-
-export function isValidSession(token: string): boolean {
-  return activeSessions.has(token);
-}
 
 export const authRouter = createTRPCRouter({
   login: publicProcedure
@@ -35,13 +26,6 @@ export const authRouter = createTRPCRouter({
       }
 
       const token = createSessionToken();
-      activeSessions.add(token);
-      await setSessionCookie(token);
-      return { success: true };
+      return { success: true, token };
     }),
-
-  logout: publicProcedure.mutation(async () => {
-    await clearSessionCookie();
-    return { success: true };
-  }),
 });

@@ -10,7 +10,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   const login = api.auth.login.useMutation({
-    onSuccess: () => router.push("/dashboard"),
+    onSuccess: (data) => {
+      // Set session cookie client-side (cookies() from next/headers doesn't work in tRPC handlers)
+      document.cookie = `mpw_session=${data.token}; path=/; max-age=${60 * 60 * 24 * 90}; samesite=lax`;
+      router.push("/dashboard");
+    },
     onError: () => setError(true),
   });
 

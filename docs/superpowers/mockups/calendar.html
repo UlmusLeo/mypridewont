@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPrideWont — Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0d0;
+    --ink: #1a1714;
+    --ink-light: #3d3730;
+    --ink-faint: #8a8074;
+    --red: #c4342d;
+    --green: #2d6b4a;
+    --green-light: #d4eddf;
+    --amber: #c47d1a;
+    --blue-steel: #4a6277;
+    --purple-muted: #6b5278;
+    --divider: #c9bfad;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  nav {
+    background: var(--ink);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--cream); letter-spacing: 0.04em; line-height: 1; }
+  .logo span { color: var(--red); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .user-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cream); border: 1.5px solid var(--cream); padding: 0.2rem 0.6rem; border-radius: 2px; }
+  .menu-btn { color: var(--cream); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .top-bar-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.06em; line-height: 1; }
+  .today-btn {
+    background: var(--ink); color: var(--cream); border: none;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 0.35rem 0.75rem; border-radius: 2px; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--divider); transition: all 0.1s;
+  }
+
+  .weeks-viewport {
+    height: calc(100vh - 7.5rem);
+    overflow-y: auto;
+    scroll-snap-type: y proximity;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+  .weeks-viewport::before,
+  .weeks-viewport::after {
+    content: ''; position: sticky; display: block; left: 0; right: 0; height: 40px; z-index: 10; pointer-events: none;
+  }
+  .weeks-viewport::before { top: 0; background: linear-gradient(to bottom, var(--cream) 0%, transparent 100%); }
+  .weeks-viewport::after { bottom: 0; background: linear-gradient(to top, var(--cream) 0%, transparent 100%); }
+
+  /* ===== WEEK STRUCTURE ===== */
+  .week {
+    border-bottom: 1px solid var(--divider);
+    scroll-snap-align: start;
+  }
+  .week.current {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    margin: 0.25rem 0.5rem;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--divider);
+  }
+  .week.current .week-header { border-bottom: 1.5px solid var(--ink); }
+
+  .week-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-light);
+    flex-shrink: 0;
+  }
+  .week.current .week-label { color: var(--ink); font-size: 1.1rem; }
+
+  .stamps { display: flex; gap: 0.35rem; margin-left: auto; }
+  .stamp {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative;
+  }
+  .stamp.earned { border: 2.5px solid var(--green); background: var(--green-light); }
+  .stamp.earned::after {
+    content: ''; position: absolute; top: -2px; right: -2px;
+    width: 10px; height: 10px; background: var(--green); border-radius: 50%;
+  }
+  .stamp.failed { border: 2.5px solid var(--red); background: #fef2f2; }
+  .stamp.failed::after {
+    content: ''; position: absolute; top: -2px; right: -2px;
+    width: 10px; height: 10px; background: var(--red); border-radius: 50%;
+  }
+  .stamp.pending { border: 2px dashed var(--divider); background: transparent; }
+  .stamp-initial { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; line-height: 1; }
+  .stamp.earned .stamp-initial { color: var(--green); }
+  .stamp.failed .stamp-initial { color: var(--red); }
+  .stamp.pending .stamp-initial { color: var(--divider); }
+
+  /* ===== DAY GRID (past + current week) ===== */
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .day-col {
+    padding: 0.3rem 0.15rem;
+    min-height: 48px;
+    border-right: 1px solid var(--divider);
+    position: relative;
+  }
+  .day-col:last-child { border-right: none; }
+  .day-col.today { background: rgba(196, 52, 45, 0.06); }
+
+  .day-head { text-align: center; margin-bottom: 0.2rem; }
+  .day-dow {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-faint); line-height: 1;
+  }
+  .day-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem; line-height: 1; color: var(--ink-light);
+  }
+  .day-col.today .day-num { color: var(--red); }
+
+  .day-pills { display: flex; flex-direction: column; gap: 2px; padding: 0 1px; }
+  .pill {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.02em;
+    padding: 1px 3px; border-radius: 2px; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pill.jake { background: rgba(74,98,119,0.15); color: var(--blue-steel); }
+  .pill.calder { background: rgba(196,125,26,0.15); color: var(--amber); }
+  .pill.son { background: rgba(107,82,120,0.15); color: var(--purple-muted); }
+
+  .pill .v { display: inline-block; margin-left: 2px; font-weight: 700; }
+  .pill .v.done { color: var(--green); }
+  .pill .v.missed { color: var(--red); }
+
+  /* Current week expanded */
+  .week.current .day-col { min-height: 90px; padding: 0.4rem 0.2rem; }
+  .week.current .day-dow { font-size: 0.6rem; }
+  .week.current .day-num { font-size: 1.15rem; }
+  .week.current .pill { font-size: 0.6rem; padding: 2px 4px; }
+
+  /* ===== GOAL BANNERS (future weeks) ===== */
+  .week-goals {
+    padding: 0.4rem 0.75rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .goal-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 2px;
+    border: 1.5px dashed;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .goal-banner.jake {
+    border-color: var(--blue-steel);
+    color: var(--blue-steel);
+    background: rgba(74,98,119,0.05);
+  }
+  .goal-banner.calder {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(196,125,26,0.05);
+  }
+  .goal-banner.son {
+    border-color: var(--purple-muted);
+    color: var(--purple-muted);
+    background: rgba(107,82,120,0.05);
+  }
+
+  .goal-banner .gb-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .goal-banner .gb-sep {
+    width: 1px;
+    height: 14px;
+    opacity: 0.3;
+    flex-shrink: 0;
+  }
+  .goal-banner.jake .gb-sep { background: var(--blue-steel); }
+  .goal-banner.calder .gb-sep { background: var(--amber); }
+  .goal-banner.son .gb-sep { background: var(--purple-muted); }
+
+  .goal-banner .gb-detail {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .goal-banner .gb-freq {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* ===== CURRENT WEEK: GOAL TALLY (below day grid) ===== */
+  .week-tally {
+    border-top: 1.5px solid var(--ink);
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tally-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tally-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .tally-name.jake { color: var(--blue-steel); }
+  .tally-name.calder { color: var(--amber); }
+  .tally-name.son { color: var(--purple-muted); }
+
+  .tally-goals {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .tally-item {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+  .tally-label { color: var(--ink-light); }
+  .tally-count { font-weight: 700; }
+  .tally-count.on-track { color: var(--green); }
+  .tally-count.behind { color: var(--red); }
+  .tally-count.met { color: var(--green); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--ink); display: flex; justify-content: space-around;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    border-top: 2px solid var(--red); z-index: 50;
+  }
+  .bottom-nav a {
+    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+    text-decoration: none; color: rgba(245,240,232,0.5);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .bottom-nav a.active { color: var(--cream); }
+  .bottom-nav a .icon { font-size: 1.2rem; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 4.5rem;
+    right: 1.25rem;
+    width: 52px;
+    height: 52px;
+    background: var(--red);
+    color: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: all 0.1s;
+    z-index: 51;
+    font-family: 'Bebas Neue', sans-serif;
+    padding-bottom: 2px;
+  }
+  .fab:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  @media (min-width: 640px) {
+    .page-wrap { max-width: 520px; margin: 0 auto; }
+    .bottom-nav { display: none; }
+    .weeks-viewport { height: calc(100vh - 6rem); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <nav>
+    <div class="logo">MY<span>PRIDE</span>WONT</div>
+    <div class="nav-right">
+      <div class="user-badge">Jake</div>
+      <div class="menu-btn">&#9776;</div>
+    </div>
+  </nav>
+
+  <div class="top-bar">
+    <div class="top-bar-title">MARCH 2026</div>
+    <button class="today-btn">Today</button>
+  </div>
+
+  <div class="weeks-viewport">
+
+    <!-- ===== PAST WEEK: Mar 2–8 ===== -->
+    <div class="week">
+      <div class="week-header">
+        <div class="week-label">MAR 2 – 8</div>
+        <div class="stamps">
+          <div class="stamp earned"><span class="stamp-initial">J</span></div>
+          <div class="stamp failed"><span class="stamp-initial">C</span></div>
+          <div class="stamp earned"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="days-grid">
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Mon</div><div class="day-num">2</div></div>
+          <div class="day-pills">
+            <div class="pill son">S run 4mi</div>
+            <div class="pill calder">C bike 4mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Tue</div><div class="day-num">3</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J str 45m</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Wed</div><div class="day-num">4</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 5mi</div>
+            <div class="pill son">S run 5.5mi</div>
+            <div class="pill calder">C bike 4mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Thu</div><div class="day-num">5</div></div>
+          <div class="day-pills">
+            <div class="pill calder">C yoga 40m</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Fri</div><div class="day-num">6</div></div>
+          <div class="day-pills">
+            <div class="pill son">S run 6mi</div>
+            <div class="pill jake">J str 40m</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sat</div><div class="day-num">7</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 8mi</div>
+            <div class="pill calder">C run 3mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sun</div><div class="day-num">8</div></div>
+          <div class="day-pills">
+            <div class="pill son">S run 4mi</div>
+            <div class="pill jake">J run 3mi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAST WEEK: Mar 9–15 ===== -->
+    <div class="week">
+      <div class="week-header">
+        <div class="week-label">MAR 9 – 15</div>
+        <div class="stamps">
+          <div class="stamp earned"><span class="stamp-initial">J</span></div>
+          <div class="stamp failed"><span class="stamp-initial">C</span></div>
+          <div class="stamp earned"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="days-grid">
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Mon</div><div class="day-num">9</div></div>
+          <div class="day-pills">
+            <div class="pill calder">C bike 4mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Tue</div><div class="day-num">10</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 5mi</div>
+            <div class="pill jake">J str 45m</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Wed</div><div class="day-num">11</div></div>
+          <div class="day-pills">
+            <div class="pill son">S run 6.2mi</div>
+            <div class="pill calder">C bike 4mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Thu</div><div class="day-num">12</div></div>
+          <div class="day-pills">
+            <div class="pill calder">C bike 4mi</div>
+            <div class="pill son">S swim 30m</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Fri</div><div class="day-num">13</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 5mi</div>
+            <div class="pill son">S run 5mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sat</div><div class="day-num">14</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J str 50m</div>
+            <div class="pill son">S run 8mi</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sun</div><div class="day-num">15</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 3mi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CURRENT WEEK: Mar 16–22 ===== -->
+    <div class="week current">
+      <div class="week-header">
+        <div class="week-label">MAR 16 – 22 &middot; THIS WEEK</div>
+        <div class="stamps">
+          <div class="stamp pending"><span class="stamp-initial">J</span></div>
+          <div class="stamp pending"><span class="stamp-initial">C</span></div>
+          <div class="stamp pending"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="days-grid">
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Mon</div><div class="day-num">16</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 5mi <span class="v done">&#10003;</span></div>
+            <div class="pill son">S run 5.5mi <span class="v done">&#10003;</span></div>
+            <div class="pill calder">C bike 4mi <span class="v done">&#10003;</span></div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Tue</div><div class="day-num">17</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J str 45m <span class="v done">&#10003;</span></div>
+            <div class="pill son">S run 6.2mi <span class="v done">&#10003;</span></div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Wed</div><div class="day-num">18</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J run 5mi <span class="v done">&#10003;</span></div>
+            <div class="pill calder">C bike 4mi <span class="v done">&#10003;</span></div>
+          </div>
+        </div>
+        <div class="day-col today">
+          <div class="day-head"><div class="day-dow">Thu</div><div class="day-num">19</div></div>
+          <div class="day-pills">
+            <div class="pill jake">J str 45m <span class="v done">&#10003;</span></div>
+            <div class="pill son">S run 6.2mi <span class="v done">&#10003;</span></div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Fri</div><div class="day-num">20</div></div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sat</div><div class="day-num">21</div></div>
+        </div>
+        <div class="day-col">
+          <div class="day-head"><div class="day-dow">Sun</div><div class="day-num">22</div></div>
+        </div>
+      </div>
+      <!-- Goal tally for current week -->
+      <div class="week-tally">
+        <div class="tally-row">
+          <div class="tally-name jake">J</div>
+          <div class="tally-goals">
+            <div class="tally-item"><span class="tally-label">Run 3mi&nbsp;</span><span class="tally-count met">2/2</span></div>
+            <div class="tally-item"><span class="tally-label">Run 4mi&nbsp;</span><span class="tally-count behind">0/1</span></div>
+            <div class="tally-item"><span class="tally-label">Str&nbsp;</span><span class="tally-count met">2/2</span></div>
+          </div>
+        </div>
+        <div class="tally-row">
+          <div class="tally-name calder">C</div>
+          <div class="tally-goals">
+            <div class="tally-item"><span class="tally-label">Run 3mi&nbsp;</span><span class="tally-count behind">0/3</span></div>
+            <div class="tally-item"><span class="tally-label">Bike&nbsp;</span><span class="tally-count on-track">2/5</span></div>
+            <div class="tally-item"><span class="tally-label">Yoga&nbsp;</span><span class="tally-count behind">0/2</span></div>
+          </div>
+        </div>
+        <div class="tally-row">
+          <div class="tally-name son">S</div>
+          <div class="tally-goals">
+            <div class="tally-item"><span class="tally-label">Run 3mi&nbsp;</span><span class="tally-count met">3/3</span></div>
+            <div class="tally-item"><span class="tally-label">Swim&nbsp;</span><span class="tally-count behind">0/1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FUTURE WEEK: Mar 23–29 (goal banners) ===== -->
+    <div class="week">
+      <div class="week-header">
+        <div class="week-label">MAR 23 – 29</div>
+        <div class="stamps">
+          <div class="stamp pending"><span class="stamp-initial">J</span></div>
+          <div class="stamp pending"><span class="stamp-initial">C</span></div>
+          <div class="stamp pending"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="week-goals">
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 4mi</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Strength</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Bike</span>
+          <span class="gb-freq">&times;5</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Yoga</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Swim</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FUTURE WEEK: Mar 30 – Apr 5 ===== -->
+    <div class="week">
+      <div class="week-header">
+        <div class="week-label">MAR 30 – APR 5</div>
+        <div class="stamps">
+          <div class="stamp pending"><span class="stamp-initial">J</span></div>
+          <div class="stamp pending"><span class="stamp-initial">C</span></div>
+          <div class="stamp pending"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="week-goals">
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 4mi</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Strength</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Bike</span>
+          <span class="gb-freq">&times;5</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Yoga</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Swim</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FUTURE WEEK: Apr 6–12 ===== -->
+    <div class="week">
+      <div class="week-header">
+        <div class="week-label">APR 6 – 12</div>
+        <div class="stamps">
+          <div class="stamp pending"><span class="stamp-initial">J</span></div>
+          <div class="stamp pending"><span class="stamp-initial">C</span></div>
+          <div class="stamp pending"><span class="stamp-initial">S</span></div>
+        </div>
+      </div>
+      <div class="week-goals">
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 4mi</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+        <div class="goal-banner jake">
+          <span class="gb-name">J</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Strength</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Bike</span>
+          <span class="gb-freq">&times;5</span>
+        </div>
+        <div class="goal-banner calder">
+          <span class="gb-name">C</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Yoga</span>
+          <span class="gb-freq">&times;2</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Run 3mi</span>
+          <span class="gb-freq">&times;3</span>
+        </div>
+        <div class="goal-banner son">
+          <span class="gb-name">S</span>
+          <span class="gb-sep"></span>
+          <span class="gb-detail">Swim</span>
+          <span class="gb-freq">&times;1</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button class="fab">+</button>
+
+<div class="bottom-nav">
+  <a href="#"><span class="icon">&#9632;</span>Home</a>
+  <a href="#" class="active"><span class="icon">&#9633;</span>Calendar</a>
+  <a href="#"><span class="icon">&#9776;</span>Log</a>
+  <a href="#"><span class="icon">&#9650;</span>Goals</a>
+</div>
+
+</body>
+</html>

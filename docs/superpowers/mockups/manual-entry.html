@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPrideWont — Log Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0d0;
+    --ink: #1a1714;
+    --ink-light: #3d3730;
+    --ink-faint: #8a8074;
+    --red: #c4342d;
+    --green: #2d6b4a;
+    --amber: #c47d1a;
+    --blue-steel: #4a6277;
+    --purple-muted: #6b5278;
+    --divider: #c9bfad;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* HEADER BAR */
+  .form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 2px solid rgba(245,240,232,0.1);
+  }
+  .form-close {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0;
+  }
+  .form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .form-title span { color: var(--red); }
+  .header-spacer { width: 50px; }
+
+  /* FORM */
+  .form-body {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 1.25rem;
+  }
+
+  .field {
+    margin-bottom: 1.25rem;
+  }
+  .field-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  /* Activity type selector */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+  .type-btn {
+    background: rgba(245,240,232,0.05);
+    border: 1.5px solid rgba(245,240,232,0.12);
+    color: var(--ink-faint);
+    border-radius: 3px;
+    padding: 0.6rem 0.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.12s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+  }
+  .type-btn:hover {
+    border-color: rgba(245,240,232,0.25);
+    color: var(--cream);
+  }
+  .type-btn.selected {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--cream);
+    box-shadow: 2px 2px 0 rgba(245,240,232,0.1);
+  }
+  .type-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+  .type-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Input rows */
+  .input-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+  .input-row .field { flex: 1; }
+
+  .text-input {
+    width: 100%;
+    background: rgba(245,240,232,0.05);
+    border: 1.5px solid rgba(245,240,232,0.12);
+    color: var(--cream);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.04em;
+    padding: 0.5rem 0.6rem;
+    border-radius: 3px;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+  .text-input:focus {
+    border-color: var(--red);
+  }
+  .text-input::placeholder {
+    color: rgba(245,240,232,0.15);
+    font-size: 1.4rem;
+  }
+
+  .input-unit {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 0.2rem;
+  }
+
+  /* Duration special */
+  .duration-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .duration-row .text-input {
+    flex: 1;
+  }
+  .duration-sep {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--ink-faint);
+    padding-bottom: 0.15rem;
+  }
+
+  /* Date input */
+  .date-input {
+    width: 100%;
+    background: rgba(245,240,232,0.05);
+    border: 1.5px solid rgba(245,240,232,0.12);
+    color: var(--cream);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    padding: 0.55rem 0.6rem;
+    border-radius: 3px;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.15s;
+    text-transform: uppercase;
+  }
+  .date-input:focus { border-color: var(--red); }
+
+  .date-shortcuts {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+  }
+  .date-shortcut {
+    flex: 1;
+    background: rgba(245,240,232,0.05);
+    border: 1.5px solid rgba(245,240,232,0.12);
+    color: var(--ink-faint);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.35rem;
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .date-shortcut:hover { border-color: rgba(245,240,232,0.25); color: var(--cream); }
+  .date-shortcut.selected {
+    background: rgba(245,240,232,0.1);
+    border-color: var(--cream);
+    color: var(--cream);
+  }
+
+  /* Notes */
+  .notes-input {
+    width: 100%;
+    background: rgba(245,240,232,0.05);
+    border: 1.5px solid rgba(245,240,232,0.12);
+    color: var(--cream);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    border-radius: 3px;
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.15s;
+  }
+  .notes-input:focus { border-color: var(--red); }
+  .notes-input::placeholder { color: rgba(245,240,232,0.2); }
+
+  /* Computed pace preview */
+  .pace-preview {
+    background: rgba(245,240,232,0.03);
+    border: 1.5px solid rgba(245,240,232,0.08);
+    border-radius: 3px;
+    padding: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .pace-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+  }
+  .pace-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .pace-unit {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%;
+    background: var(--red);
+    color: var(--cream);
+    border: 2px solid var(--cream);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    padding: 0.65rem 1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 rgba(245,240,232,0.15);
+    transition: all 0.1s;
+    margin-top: 0.5rem;
+  }
+  .submit-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 rgba(245,240,232,0.15);
+  }
+
+  @media (min-width: 640px) {
+    .form-body { padding: 2rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="form-header">
+  <button class="form-close">&larr; Back</button>
+  <div class="form-title">LOG <span>ACTIVITY</span></div>
+  <div class="header-spacer"></div>
+</div>
+
+<div class="form-body">
+
+  <!-- Activity Type -->
+  <div class="field">
+    <label class="field-label">What did you do?</label>
+    <div class="type-grid">
+      <div class="type-btn selected">
+        <div class="type-icon">&#9654;</div>
+        <div class="type-name">Run</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#9679;</div>
+        <div class="type-name">Bike</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#9650;</div>
+        <div class="type-name">Strength</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#10022;</div>
+        <div class="type-name">Yoga</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#8776;</div>
+        <div class="type-name">Swim</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#9650;</div>
+        <div class="type-name">Hike</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#8226;</div>
+        <div class="type-name">Walk</div>
+      </div>
+      <div class="type-btn">
+        <div class="type-icon">&#8943;</div>
+        <div class="type-name">Other</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date -->
+  <div class="field">
+    <label class="field-label">When?</label>
+    <input type="text" class="date-input" value="TODAY — MAR 19" readonly>
+    <div class="date-shortcuts">
+      <div class="date-shortcut selected">Today</div>
+      <div class="date-shortcut">Yesterday</div>
+      <div class="date-shortcut">Pick date</div>
+    </div>
+  </div>
+
+  <!-- Distance + Duration -->
+  <div class="input-row">
+    <div class="field">
+      <label class="field-label">Distance</label>
+      <input type="text" class="text-input" placeholder="0.0" value="5.2">
+      <div class="input-unit">Miles</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Duration</label>
+      <div class="duration-row">
+        <input type="text" class="text-input" placeholder="00" value="42">
+        <span class="duration-sep">:</span>
+        <input type="text" class="text-input" placeholder="00" value="03">
+      </div>
+      <div class="input-unit">Min : Sec</div>
+    </div>
+  </div>
+
+  <!-- Pace preview -->
+  <div class="field">
+    <div class="pace-preview">
+      <span class="pace-label">Pace</span>
+      <span class="pace-value">8:05</span>
+      <span class="pace-unit">/mi</span>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="field">
+    <label class="field-label">Notes (optional)</label>
+    <textarea class="notes-input" placeholder="Easy pace around the park..."></textarea>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn">LOG IT</button>
+
+</div>
+
+</body>
+</html>

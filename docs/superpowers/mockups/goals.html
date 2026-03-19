@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPrideWont — Goals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0d0;
+    --ink: #1a1714;
+    --ink-light: #3d3730;
+    --ink-faint: #8a8074;
+    --red: #c4342d;
+    --green: #2d6b4a;
+    --green-light: #d4eddf;
+    --amber: #c47d1a;
+    --blue-steel: #4a6277;
+    --purple-muted: #6b5278;
+    --divider: #c9bfad;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--ink);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--cream); letter-spacing: 0.04em; line-height: 1; }
+  .logo span { color: var(--red); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .user-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cream); border: 1.5px solid var(--cream); padding: 0.2rem 0.6rem; border-radius: 2px; }
+  .menu-btn { color: var(--cream); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+
+  .section-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-light);
+    padding: 0.75rem 1.25rem 0.4rem;
+    border-bottom: 2px solid var(--ink);
+    margin: 0 0.75rem;
+    text-transform: uppercase;
+  }
+
+  /* TAB SWITCHER */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid var(--ink);
+    margin: 0;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.6rem 0.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    color: var(--ink-faint);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.12s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--red);
+  }
+
+  /* ===== PLAN VIEW TAB ===== */
+  .plan-view { padding: 0.75rem; }
+
+  /* Person plan section */
+  .person-plan {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    box-shadow: 3px 3px 0 var(--ink);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .person-plan-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .person-plan-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .person-plan-name.jake { color: var(--blue-steel); }
+  .person-plan-name.calder { color: var(--amber); }
+  .person-plan-name.son { color: var(--purple-muted); }
+
+  .shame-tally {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+  }
+  .shame-tally.clean { background: var(--green-light); color: var(--green); }
+  .shame-tally.shamed { background: #fef2f2; color: var(--red); border: 1px solid var(--red); }
+
+  /* Timeline */
+  .plan-timeline {
+    padding: 0.5rem 0.75rem 0.6rem;
+  }
+
+  .timeline-header {
+    display: flex;
+    margin-bottom: 0.25rem;
+    padding-left: 70px;
+  }
+  .timeline-month {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+
+  .timeline-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .timeline-row:last-child { margin-bottom: 0; }
+
+  .timeline-label {
+    width: 70px;
+    flex-shrink: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-light);
+    padding-right: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .timeline-bar-wrap {
+    flex: 1;
+    display: flex;
+    height: 18px;
+    position: relative;
+  }
+
+  .timeline-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .timeline-bar.jake { background: rgba(74,98,119,0.2); color: var(--blue-steel); }
+  .timeline-bar.calder { background: rgba(196,125,26,0.2); color: var(--amber); }
+  .timeline-bar.son { background: rgba(107,82,120,0.2); color: var(--purple-muted); }
+
+  /* Now marker */
+  .timeline-now {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--red);
+    z-index: 2;
+  }
+  .timeline-now::before {
+    content: 'NOW';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.5rem;
+    color: var(--red);
+    letter-spacing: 0.08em;
+  }
+
+  /* ADD GOAL BUTTON */
+  .add-goal-btn {
+    background: none;
+    border: 1.5px dashed var(--divider);
+    color: var(--ink-faint);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.4rem;
+    border-radius: 3px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: all 0.12s;
+    margin-top: 0.4rem;
+  }
+  .add-goal-btn:hover {
+    border-color: var(--ink-light);
+    color: var(--ink-light);
+  }
+
+  /* INLINE ADD FORM */
+  .add-goal-form {
+    border-top: 1.5px solid var(--divider);
+    padding: 0.6rem 0.75rem;
+    background: var(--cream);
+  }
+  .add-goal-form-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    margin-bottom: 0.5rem;
+  }
+  .add-goal-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    align-items: center;
+  }
+  .add-goal-row:last-child { margin-bottom: 0; }
+
+  .mini-select, .mini-input {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.4rem;
+    border: 1.5px solid var(--divider);
+    border-radius: 2px;
+    background: var(--white);
+    color: var(--ink);
+    outline: none;
+  }
+  .mini-select:focus, .mini-input:focus {
+    border-color: var(--red);
+  }
+  .mini-select { flex-shrink: 0; }
+  .mini-input { width: 50px; text-align: center; }
+  .mini-input-wide { width: 90px; text-align: center; }
+  .mini-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+
+  .add-goal-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .add-goal-cancel {
+    flex: 1;
+    background: transparent;
+    border: 1.5px solid var(--divider);
+    color: var(--ink-faint);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.35rem;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .add-goal-save {
+    flex: 1;
+    background: var(--red);
+    border: 1.5px solid var(--red);
+    color: var(--cream);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.35rem;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  /* ===== IMPORT TAB ===== */
+  .import-view { padding: 0.75rem; }
+
+  .import-card {
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    box-shadow: 3px 3px 0 var(--ink);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .import-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .import-card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .import-card-name.jake { color: var(--blue-steel); }
+  .import-card-name.calder { color: var(--amber); }
+  .import-card-name.son { color: var(--purple-muted); }
+
+  .import-status {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+  }
+  .import-status.loaded { background: var(--green-light); color: var(--green); }
+  .import-status.empty { background: var(--cream-dark); color: var(--ink-faint); }
+
+  .import-card-body { padding: 0.6rem 0.75rem; }
+
+  /* File content preview / editor */
+  .file-editor {
+    width: 100%;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    line-height: 1.7;
+    padding: 0.75rem;
+    border-radius: 3px;
+    border: 1.5px solid var(--ink);
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+  }
+  .file-editor:focus {
+    border-color: var(--red);
+  }
+  .file-editor::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .import-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .import-btn {
+    flex: 1;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.45rem 0.5rem;
+    border-radius: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.1s;
+    border: 1.5px solid;
+  }
+  .import-btn.upload {
+    background: transparent;
+    border-color: var(--ink);
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--divider);
+  }
+  .import-btn.upload:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--divider);
+  }
+  .import-btn.apply {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--cream);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .import-btn.apply:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+
+  /* Format reference */
+  .format-ref {
+    background: var(--cream);
+    border: 1.5px solid var(--divider);
+    border-radius: 3px;
+    padding: 0.6rem 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .format-ref-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    margin-bottom: 0.3rem;
+  }
+  .format-ref pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    line-height: 1.7;
+    color: var(--ink-light);
+    white-space: pre-wrap;
+  }
+  .format-ref pre em {
+    color: var(--ink-faint);
+    font-style: normal;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--ink); display: flex; justify-content: space-around;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    border-top: 2px solid var(--red); z-index: 50;
+  }
+  .bottom-nav a {
+    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+    text-decoration: none; color: rgba(245,240,232,0.5);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .bottom-nav a.active { color: var(--cream); }
+  .bottom-nav a .icon { font-size: 1.2rem; }
+
+  .fab {
+    position: fixed; bottom: 4.5rem; right: 1.25rem;
+    width: 52px; height: 52px; background: var(--red); color: var(--cream);
+    border: 2px solid var(--ink); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; line-height: 1; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink); transition: all 0.1s;
+    z-index: 51; font-family: 'Bebas Neue', sans-serif; padding-bottom: 2px;
+  }
+
+  .nav-spacer { height: 5rem; }
+
+  @media (min-width: 640px) {
+    .page-wrap { max-width: 520px; margin: 0 auto; }
+    .bottom-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <nav>
+    <div class="logo">MY<span>PRIDE</span>WONT</div>
+    <div class="nav-right">
+      <div class="user-badge">Jake</div>
+      <div class="menu-btn">&#9776;</div>
+    </div>
+  </nav>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active">Plan View</div>
+    <div class="tab">Import Plans</div>
+  </div>
+
+  <!-- ===== PLAN VIEW ===== -->
+  <div class="plan-view">
+
+    <!-- JAKE -->
+    <div class="person-plan">
+      <div class="person-plan-header">
+        <div class="person-plan-name jake">JAKE</div>
+        <div class="shame-tally clean">0 shame marks</div>
+      </div>
+      <div class="plan-timeline">
+        <div class="timeline-header" style="display:flex;">
+          <div class="timeline-month" style="flex:4;">Mar</div>
+          <div class="timeline-month" style="flex:4;">Apr</div>
+          <div class="timeline-month" style="flex:5;">May</div>
+          <div class="timeline-month" style="flex:4;">Jun</div>
+          <div class="timeline-month" style="flex:4;">Jul</div>
+          <div class="timeline-month" style="flex:5;">Aug</div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-label">Run 3mi</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-now" style="left: 8%;"></div>
+            <div class="timeline-bar jake" style="width: 42%; margin-left: 0;">x2/wk</div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 4mi</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-bar jake" style="width: 42%; margin-left: 0;">x1/wk</div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 5mi</div>
+          <div class="timeline-bar-wrap">
+            <div style="width: 42%;"></div>
+            <div class="timeline-bar jake" style="width: 58%;">x2/wk</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 8mi</div>
+          <div class="timeline-bar-wrap">
+            <div style="width: 42%;"></div>
+            <div class="timeline-bar jake" style="width: 58%;">x1/wk</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Strength</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-bar jake" style="width: 100%;">x2/wk</div>
+          </div>
+        </div>
+      </div>
+      <!-- Inline add goal form (expanded state) -->
+      <div class="add-goal-form">
+        <div class="add-goal-form-title">Add Goal</div>
+        <div class="add-goal-row">
+          <select class="mini-select">
+            <option>Run</option>
+            <option>Bike</option>
+            <option>Strength</option>
+            <option>Yoga</option>
+            <option>Swim</option>
+            <option>Hike</option>
+            <option>Walk</option>
+            <option>Other</option>
+          </select>
+          <input class="mini-input" placeholder="3" value="6">
+          <span class="mini-label">mi</span>
+          <span class="mini-label" style="margin-left: 0.25rem;">x</span>
+          <input class="mini-input" placeholder="3" value="1" style="width: 36px;">
+          <span class="mini-label">/wk</span>
+        </div>
+        <div class="add-goal-row">
+          <span class="mini-label">From</span>
+          <input class="mini-input mini-input-wide" value="Sep 1">
+          <span class="mini-label">To</span>
+          <input class="mini-input mini-input-wide" placeholder="Ongoing" value="">
+        </div>
+        <div class="add-goal-actions">
+          <button class="add-goal-cancel">Cancel</button>
+          <button class="add-goal-save">Add Goal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALDER -->
+    <div class="person-plan">
+      <div class="person-plan-header">
+        <div class="person-plan-name calder">CALDER</div>
+        <div class="shame-tally shamed">4 shame marks</div>
+      </div>
+      <div class="plan-timeline">
+        <div class="timeline-header" style="display:flex;">
+          <div class="timeline-month" style="flex:4;">Mar</div>
+          <div class="timeline-month" style="flex:4;">Apr</div>
+          <div class="timeline-month" style="flex:5;">May</div>
+          <div class="timeline-month" style="flex:4;">Jun</div>
+          <div class="timeline-month" style="flex:4;">Jul</div>
+          <div class="timeline-month" style="flex:5;">Aug</div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-label">Run 3mi</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-now" style="left: 8%;"></div>
+            <div class="timeline-bar calder" style="width: 42%;">x3/wk</div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 5mi</div>
+          <div class="timeline-bar-wrap">
+            <div style="width: 42%;"></div>
+            <div class="timeline-bar calder" style="width: 58%;">x2/wk</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Bike</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-bar calder" style="width: 100%;">x5/wk</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Yoga</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-bar calder" style="width: 100%;">x2/wk</div>
+          </div>
+        </div>
+        <button class="add-goal-btn">+ Add Goal</button>
+      </div>
+    </div>
+
+    <!-- SON -->
+    <div class="person-plan">
+      <div class="person-plan-header">
+        <div class="person-plan-name son">SON</div>
+        <div class="shame-tally clean">0 shame marks</div>
+      </div>
+      <div class="plan-timeline">
+        <div class="timeline-header" style="display:flex;">
+          <div class="timeline-month" style="flex:4;">Mar</div>
+          <div class="timeline-month" style="flex:4;">Apr</div>
+          <div class="timeline-month" style="flex:5;">May</div>
+          <div class="timeline-month" style="flex:4;">Jun</div>
+          <div class="timeline-month" style="flex:4;">Jul</div>
+          <div class="timeline-month" style="flex:5;">Aug</div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-label">Run 3mi</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-now" style="left: 8%;"></div>
+            <div class="timeline-bar son" style="width: 42%;">x3/wk</div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 5mi</div>
+          <div class="timeline-bar-wrap">
+            <div style="width: 42%;"></div>
+            <div class="timeline-bar son" style="width: 35%;">x2/wk</div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Run 8mi</div>
+          <div class="timeline-bar-wrap">
+            <div style="width: 77%;"></div>
+            <div class="timeline-bar son" style="width: 23%;">x1/wk</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Swim</div>
+          <div class="timeline-bar-wrap">
+            <div class="timeline-bar son" style="width: 100%;">x1/wk</div>
+          </div>
+        </div>
+        <button class="add-goal-btn">+ Add Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IMPORT TAB (shown below for mockup, would be toggled) ===== -->
+  <div class="section-header">Import Plans</div>
+
+  <div class="import-view">
+
+    <!-- Format reference -->
+    <div class="format-ref">
+      <div class="format-ref-title">Plan File Format</div>
+      <pre><em># one goal per line</em>
+run 3mi x2, mar 23 - may 31
+run 4mi x1, mar 23 - may 31
+strength x2, mar 23           <em># no end = ongoing</em>
+run 5mi x2, jun 1 - aug 31   <em># ramp up phase</em></pre>
+    </div>
+
+    <!-- Jake's import -->
+    <div class="import-card" style="margin-top: 0.75rem;">
+      <div class="import-card-header">
+        <div class="import-card-name jake">JAKE</div>
+        <div class="import-status loaded">Plan loaded</div>
+      </div>
+      <div class="import-card-body">
+        <textarea class="file-editor" rows="7">run 3mi x2, mar 23 - may 31
+run 4mi x1, mar 23 - may 31
+run 5mi x2, jun 1 - aug 31
+run 8mi x1, jun 1 - aug 31
+strength x2, mar 23</textarea>
+        <div class="import-actions">
+          <button class="import-btn upload">Upload File</button>
+          <button class="import-btn apply">Apply Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calder's import -->
+    <div class="import-card">
+      <div class="import-card-header">
+        <div class="import-card-name calder">CALDER</div>
+        <div class="import-status loaded">Plan loaded</div>
+      </div>
+      <div class="import-card-body">
+        <textarea class="file-editor" rows="6">run 3mi x3, mar 23 - may 31
+run 5mi x2, jun 1 - aug 31
+bike x5, mar 23
+yoga x2, mar 23</textarea>
+        <div class="import-actions">
+          <button class="import-btn upload">Upload File</button>
+          <button class="import-btn apply">Apply Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Son's import -->
+    <div class="import-card">
+      <div class="import-card-header">
+        <div class="import-card-name son">SON</div>
+        <div class="import-status empty">No plan</div>
+      </div>
+      <div class="import-card-body">
+        <textarea class="file-editor" rows="4" placeholder="run 3mi x3, mar 23 - may 31
+swim x1, mar 23
+..."></textarea>
+        <div class="import-actions">
+          <button class="import-btn upload">Upload File</button>
+          <button class="import-btn apply">Apply Plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-spacer"></div>
+</div>
+
+<button class="fab">+</button>
+
+<div class="bottom-nav">
+  <a href="#"><span class="icon">&#9632;</span>Home</a>
+  <a href="#"><span class="icon">&#9633;</span>Calendar</a>
+  <a href="#"><span class="icon">&#9776;</span>Log</a>
+  <a href="#" class="active"><span class="icon">&#9650;</span>Goals</a>
+</div>
+
+</body>
+</html>

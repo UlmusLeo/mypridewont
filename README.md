@@ -1,6 +1,6 @@
 # MyPrideWont
 
-Marathon training tracker for Jake, Calder, and Son. No excuses. No mercy.
+Marathon training tracker for Jake, Calder, and Son.
 
 Built with the T3 stack: Next.js 15, tRPC v11, Prisma, Tailwind CSS v4, TypeScript, PostgreSQL.
 

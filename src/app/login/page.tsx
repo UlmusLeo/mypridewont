@@ -47,9 +47,7 @@ export default function LoginPage() {
         <h1 className="mb-1 font-display text-[3.5rem] leading-none tracking-wider text-cream">
           MY<span className="text-red">PRIDE</span>WONT
         </h1>
-        <p className="mb-10 font-condensed text-sm font-semibold uppercase tracking-[0.2em] text-ink-faint">
-          No excuses. No mercy.
-        </p>
+        <div className="mb-10" />
 
         <input
           type="password"

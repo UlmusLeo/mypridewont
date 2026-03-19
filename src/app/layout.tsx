@@ -6,7 +6,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
   title: "MyPrideWont",
-  description: "No excuses. No mercy.",
+  description: "Marathon training tracker",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

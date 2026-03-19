@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  dataSource  String       @default("manual") // "strava" | "manual"
+  stravaToken String?
+  activities  Activity[]
+  goals       WeeklyGoal[]
+  createdAt   DateTime     @default(now())
+}
+
+model Activity {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  date          DateTime @db.Date
+  type          String   // "run" | "bike" | "swim" | "strength" | "yoga" | "hike" | "walk" | "other"
+  source        String   @default("manual") // "manual" | "strava" | "signal"
+  externalId    String?  @unique
+  notes         String?
+  durationSec   Int
+  distanceMi    Float?
+  paceSecPerMi  Int?
+  elevGainFt    Float?
+  avgHeartRate  Int?
+  maxHeartRate  Int?
+  calories      Int?
+  routePolyline String?
+  splits        Split[]
+  createdAt     DateTime @default(now())
+
+  @@index([userId, date])
+  @@index([date])
+}
+
+model Split {
+  id           String   @id @default(cuid())
+  activityId   String
+  activity     Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  mileNumber   Int
+  durationSec  Int
+  paceSecPerMi Int
+  elevGainFt   Float?
+  avgHeartRate Int?
+
+  @@index([activityId])
+}
+
+model WeeklyGoal {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  activityType     String
+  timesPerWeek     Int
+  targetDistanceMi Float?
+  targetDurationMin Int?
+  startDate        DateTime  @db.Date
+  endDate          DateTime? @db.Date
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AppConfig {
+  key   String @id
+  value String
+}

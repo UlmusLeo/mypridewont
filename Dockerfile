@@ -25,9 +25,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy prisma schema and migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-# Install prisma CLI properly so all required files (wasm, engines) are present
-COPY --from=deps /app/package*.json ./
-RUN npm install prisma --ignore-scripts=false
+# Copy prisma CLI and engines from deps stage (already installed, no re-download)
+COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=deps /app/node_modules/.bin/prisma_schema_build_bg.wasm ./node_modules/.bin/prisma_schema_build_bg.wasm
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000

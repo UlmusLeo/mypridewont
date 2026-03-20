@@ -25,13 +25,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy prisma schema and migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-# Copy prisma CLI and engines from deps stage (already installed, no re-download)
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
+# Give prisma its own isolated node_modules with full deps so migrate deploy works
+COPY --from=deps /app/node_modules /prisma-cli/node_modules
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "require('http').get('http://127.0.0.1:3000/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+CMD ["sh", "-c", "node /prisma-cli/node_modules/prisma/build/index.js migrate deploy && node server.js"]

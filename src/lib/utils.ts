@@ -39,14 +39,15 @@ export function computePace(distanceMi: number, durationSec: number): number {
 }
 
 /**
- * Get the Monday of the week containing the given date (ISO weeks start Monday)
+ * Get the Monday of the week containing the given date (ISO weeks start Monday).
+ * Uses UTC methods so generated dates are consistent with @db.Date values.
  */
 export function getWeekStart(date: Date): Date {
   const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
+  const day = d.getUTCDay();
+  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+  d.setUTCDate(diff);
+  d.setUTCHours(0, 0, 0, 0);
   return d;
 }
 
@@ -56,15 +57,30 @@ export function getWeekStart(date: Date): Date {
 export function getWeekEnd(date: Date): Date {
   const start = getWeekStart(date);
   const end = new Date(start);
-  end.setDate(end.getDate() + 6);
+  end.setUTCDate(end.getUTCDate() + 6);
   return end;
 }
 
 /**
- * Format a date as "Mar 19" style
+ * Format a date as "Mar 19" style (UTC — safe for @db.Date values)
  */
 export function formatDateShort(date: Date): string {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+/**
+ * Format a date as "Friday, Mar 19" style (UTC — safe for @db.Date values)
+ */
+export function formatDateLong(date: Date): string {
+  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+/**
+ * UTC date string for comparing @db.Date values (e.g. "2026-03-20")
+ * Use instead of toDateString() which uses local timezone.
+ */
+export function toUTCDateKey(date: Date): string {
+  return date.toISOString().split("T")[0]!;
 }
 
 /**

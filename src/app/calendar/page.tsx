@@ -5,7 +5,7 @@ import { WeekPast } from "~/components/calendar/week-past";
 import { WeekCurrent } from "~/components/calendar/week-current";
 import { WeekFuture } from "~/components/calendar/week-future";
 import { api } from "~/trpc/react";
-import { getWeekStart, getWeekEnd } from "~/lib/utils";
+import { getWeekStart, getWeekEnd, toUTCDateKey } from "~/lib/utils";
 import type { UserName } from "~/lib/constants";
 
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -13,14 +13,14 @@ const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 function getWeekDays(weekStart: Date) {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
+    d.setUTCDate(d.getUTCDate() + i);
     return d;
   });
 }
 
 function weekLabel(start: Date, end: Date): string {
-  const s = start.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
-  const e = end.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
+  const s = start.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).toUpperCase();
+  const e = end.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).toUpperCase();
   return `${s} \u2013 ${e}`;
 }
 
@@ -33,9 +33,9 @@ export default function CalendarPage() {
   const weeks: { start: Date; end: Date; type: "past" | "current" | "future" }[] = [];
   for (let i = -2; i <= 3; i++) {
     const start = new Date(currentWeekStart);
-    start.setDate(start.getDate() + i * 7);
+    start.setUTCDate(start.getUTCDate() + i * 7);
     const end = new Date(start);
-    end.setDate(end.getDate() + 6);
+    end.setUTCDate(end.getUTCDate() + 6);
     weeks.push({ start, end, type: i < 0 ? "past" : i === 0 ? "current" : "future" });
   }
 
@@ -82,9 +82,9 @@ export default function CalendarPage() {
             const dayData = days.map((d, di) => ({
               date: d,
               dayOfWeek: DAY_NAMES[di]!,
-              dayNum: d.getDate(),
+              dayNum: d.getUTCDate(),
               activities: weekActs
-                .filter((a) => new Date(a.date).toDateString() === d.toDateString())
+                .filter((a) => toUTCDateKey(new Date(a.date)) === toUTCDateKey(d))
                 .map((a) => ({
                   userName: a.user.name as UserName,
                   type: a.type,
@@ -111,10 +111,10 @@ export default function CalendarPage() {
             const dayData = days.map((d, di) => ({
               date: d,
               dayOfWeek: DAY_NAMES[di]!,
-              dayNum: d.getDate(),
-              isToday: d.toDateString() === now.toDateString(),
+              dayNum: d.getUTCDate(),
+              isToday: toUTCDateKey(d) === toUTCDateKey(now),
               activities: weekActs
-                .filter((a) => new Date(a.date).toDateString() === d.toDateString())
+                .filter((a) => toUTCDateKey(new Date(a.date)) === toUTCDateKey(d))
                 .map((a) => ({
                   userName: a.user.name as UserName,
                   type: a.type,

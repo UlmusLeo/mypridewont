@@ -1,5 +1,5 @@
 import type { UserName } from "~/lib/constants";
-import { formatDurationFriendly, formatPace, formatDateShort } from "~/lib/utils";
+import { formatDurationFriendly, formatPace, formatDateShort, toUTCDateKey } from "~/lib/utils";
 
 type FeedActivity = {
   id: string;
@@ -14,13 +14,13 @@ type FeedActivity = {
 
 export function Feed({ activities }: { activities: FeedActivity[] }) {
   const now = new Date();
-  const today = now.toDateString();
-  const yesterday = new Date(now.getTime() - 86400000).toDateString();
+  const todayKey = toUTCDateKey(now);
+  const yesterdayKey = toUTCDateKey(new Date(now.getTime() - 86400000));
 
   function relativeDate(date: Date): string {
-    const d = new Date(date).toDateString();
-    if (d === today) return "Today";
-    if (d === yesterday) return "Yesterday";
+    const key = toUTCDateKey(new Date(date));
+    if (key === todayKey) return "Today";
+    if (key === yesterdayKey) return "Yesterday";
     const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 86400000);
     if (diff < 7) return `${diff} days ago`;
     return formatDateShort(new Date(date));

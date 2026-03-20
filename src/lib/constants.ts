@@ -36,10 +36,5 @@ export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   yoga: "Yoga", hike: "Hike", walk: "Walk", other: "Other",
 };
 
-export const ACTIVITY_ICONS: Record<ActivityType, string> = {
-  run: "\u25B6", bike: "\u25CF", swim: "\u2248", strength: "\u25B2",
-  yoga: "\u2726", hike: "\u25B2", walk: "\u2022", other: "\u22EF",
-};
-
 // Activity types that have distance
 export const DISTANCE_TYPES: ActivityType[] = ["run", "bike", "swim", "hike", "walk"];

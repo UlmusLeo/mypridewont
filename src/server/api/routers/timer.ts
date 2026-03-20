@@ -1,0 +1,153 @@
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { segmentsSchema } from "~/lib/timer";
+import type { Segment } from "~/lib/timer";
+import { computePace } from "~/lib/utils";
+import { TRPCError } from "@trpc/server";
+
+export const timerRouter = createTRPCRouter({
+  start: publicProcedure
+    .input(z.object({ userId: z.string(), activityType: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "A timer is already running for this user",
+        });
+      }
+
+      const now = new Date().toISOString();
+      return ctx.db.activeTimer.create({
+        data: {
+          userId: input.userId,
+          activityType: input.activityType,
+          segments: [{ start: now }],
+          status: "running",
+        },
+      });
+    }),
+
+  pause: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const timer = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!timer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No active timer" });
+      }
+
+      const segments = segmentsSchema.parse(timer.segments);
+      const last = segments[segments.length - 1]!;
+      last.end = new Date().toISOString();
+
+      return ctx.db.activeTimer.update({
+        where: { userId: input.userId },
+        data: { segments, status: "paused" },
+      });
+    }),
+
+  resume: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const timer = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!timer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No active timer" });
+      }
+
+      const segments = segmentsSchema.parse(timer.segments);
+      const now = new Date().toISOString();
+      segments.push({ start: now });
+
+      return ctx.db.activeTimer.update({
+        where: { userId: input.userId },
+        data: { segments, status: "running" },
+      });
+    }),
+
+  end: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        distanceMi: z.number().positive().optional(),
+        durationOverrideSec: z.number().int().positive().optional(),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const timer = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!timer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No active timer" });
+      }
+
+      const segments = segmentsSchema.parse(timer.segments);
+
+      // Close last segment if still running
+      const last = segments[segments.length - 1]!;
+      if (!last.end) {
+        last.end = new Date().toISOString();
+      }
+
+      // Compute total duration from segments
+      const computedSec = Math.round(
+        segments.reduce((total: number, seg: Segment) => {
+          const start = new Date(seg.start).getTime();
+          const end = new Date(seg.end!).getTime();
+          return total + (end - start) / 1000;
+        }, 0),
+      );
+
+      const durationSec = input.durationOverrideSec ?? computedSec;
+
+      // Compute pace for runs
+      const paceSecPerMi =
+        input.distanceMi && timer.activityType === "run"
+          ? computePace(input.distanceMi, durationSec)
+          : null;
+
+      // Use date-only string so @db.Date stores the correct calendar day
+      // (matches the pattern in activity.create where input.date is "YYYY-MM-DD")
+      const startDate = timer.startedAt.toISOString().split("T")[0]!;
+
+      // Atomic: create activity + delete timer
+      const [activity] = await ctx.db.$transaction([
+        ctx.db.activity.create({
+          data: {
+            userId: input.userId,
+            date: new Date(startDate),
+            type: timer.activityType,
+            durationSec,
+            distanceMi: input.distanceMi ?? null,
+            paceSecPerMi,
+            notes: input.notes ?? null,
+            source: "timer",
+          },
+        }),
+        ctx.db.activeTimer.delete({
+          where: { userId: input.userId },
+        }),
+      ]);
+
+      return activity;
+    }),
+
+  active: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const timer = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!timer) return null;
+
+      // Validate segments on read
+      segmentsSchema.parse(timer.segments);
+      return timer;
+    }),
+});

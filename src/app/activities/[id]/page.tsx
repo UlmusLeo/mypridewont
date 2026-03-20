@@ -1,10 +1,12 @@
 import { Shell } from "~/components/shell";
 import { api } from "~/trpc/server";
-import { formatDuration, formatPace, formatDurationFriendly } from "~/lib/utils";
+import { formatDuration, formatPace, formatDurationFriendly, formatDateLong } from "~/lib/utils";
 import { USER_TEXT_CLASS } from "~/lib/constants";
 import type { UserName } from "~/lib/constants";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { EditButton } from "~/components/edit-activity-modal-trigger";
 
 export default async function ActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,14 +21,26 @@ export default async function ActivityDetailPage({ params }: { params: Promise<{
       {/* Back link + header */}
       <div className="border-b-2 border-ink px-5 py-3">
         <Link href="/activities" className="mb-1 block font-condensed text-xs font-bold uppercase tracking-wider text-ink-faint">
-          &larr; Back to log
+          <ArrowLeft size={12} strokeWidth={2.5} className="inline" strokeLinecap="square" strokeLinejoin="miter" /> Back to log
         </Link>
-        <div className={`font-display text-2xl tracking-wider ${USER_TEXT_CLASS[name]}`}>
-          {name.toUpperCase()}
-        </div>
-        <div className="font-condensed text-sm uppercase tracking-wider text-ink-light capitalize">
-          {activity.type} &middot;{" "}
-          {new Date(activity.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+        <div className="mt-2 flex items-center justify-between">
+          <div>
+            <div className={`font-display text-2xl tracking-wider ${USER_TEXT_CLASS[name]}`}>
+              {name.toUpperCase()}
+            </div>
+            <div className="font-condensed text-sm uppercase tracking-wider text-ink-light capitalize">
+              {activity.type} &middot;{" "}
+              {formatDateLong(new Date(activity.date))}
+            </div>
+          </div>
+          <EditButton activity={{
+            id: activity.id,
+            type: activity.type,
+            date: activity.date,
+            durationSec: activity.durationSec,
+            distanceMi: activity.distanceMi,
+            notes: activity.notes,
+          }} />
         </div>
       </div>
 

@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+import { ICON_STYLE } from "~/components/activity-icons";
 import type { UserName } from "~/lib/constants";
 
 type ActivityPill = {
@@ -75,7 +77,7 @@ export function WeekCurrent({ weekLabel, days, tally }: Props) {
                       className={`truncate rounded-sm px-1 py-0.5 font-condensed text-[0.6rem] font-semibold uppercase tracking-tight ${pillClass[a.userName]}`}
                     >
                       {initial} {a.type.slice(0, 3)} {dist}{" "}
-                      <span className="ml-0.5 font-bold text-green">&#10003;</span>
+                      <Check size={10} strokeWidth={3} className="ml-0.5 inline text-green" {...ICON_STYLE} />
                     </div>
                   );
                 })}

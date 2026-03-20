@@ -16,6 +16,7 @@ model User {
   stravaToken String?
   activities  Activity[]
   goals       WeeklyGoal[]
+  activeTimer ActiveTimer?
   createdAt   DateTime     @default(now())
 }
 
@@ -69,6 +70,19 @@ model WeeklyGoal {
   createdAt        DateTime  @default(now())
 
   @@index([userId])
+}
+
+model ActiveTimer {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  activityType String
+  startedAt    DateTime @default(now())
+  segments     Json     // Array of { start: ISO string, end?: ISO string }
+  status       String   // "running" | "paused"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model AppConfig {

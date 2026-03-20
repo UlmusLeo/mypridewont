@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Calendar, ClipboardList, Target } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ICON_STYLE } from "~/components/activity-icons";
 
-const tabs = [
-  { href: "/dashboard", label: "Home", icon: "■" },
-  { href: "/calendar", label: "Calendar", icon: "□" },
-  { href: "/activities", label: "Log", icon: "☰" },
-  { href: "/goals", label: "Goals", icon: "▲" },
+const tabs: { href: string; label: string; Icon: LucideIcon }[] = [
+  { href: "/dashboard", label: "Home", Icon: Home },
+  { href: "/calendar", label: "Calendar", Icon: Calendar },
+  { href: "/activities", label: "Log", Icon: ClipboardList },
+  { href: "/goals", label: "Goals", Icon: Target },
 ];
 
 export function Sidebar() {
@@ -16,10 +19,7 @@ export function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-48 shrink-0 border-r-2 border-red bg-ink sm:block">
       <div className="px-5 py-4">
-        <Link
-          href="/dashboard"
-          className="font-display text-2xl leading-none tracking-wider text-cream"
-        >
+        <Link href="/dashboard" className="font-display text-2xl leading-none tracking-wider text-cream">
           MY<span className="text-red">PRIDE</span>WONT
         </Link>
       </div>
@@ -34,7 +34,7 @@ export function Sidebar() {
                 : "text-cream/50 hover:bg-cream/5 hover:text-cream/70"
             }`}
           >
-            <span className="text-base">{tab.icon}</span>
+            <tab.Icon size={16} strokeWidth={2.5} {...ICON_STYLE} />
             {tab.label}
           </Link>
         ))}

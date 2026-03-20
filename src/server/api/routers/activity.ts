@@ -89,6 +89,55 @@ export const activityRouter = createTRPCRouter({
       return ctx.db.activity.delete({ where: { id: input.id } });
     }),
 
+  update: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        date: z.string().optional(),
+        type: z.string().optional(),
+        durationSec: z.number().int().positive().optional(),
+        distanceMi: z.number().positive().nullable().optional(),
+        notes: z.string().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...fields } = input;
+
+      // Get existing activity to compute pace if needed
+      const existing = await ctx.db.activity.findUniqueOrThrow({
+        where: { id },
+      });
+
+      const newType = fields.type ?? existing.type;
+      const newDuration = fields.durationSec ?? existing.durationSec;
+      const newDistance =
+        fields.distanceMi !== undefined
+          ? fields.distanceMi
+          : existing.distanceMi;
+
+      // Recompute pace
+      let paceSecPerMi: number | null = null;
+      if (newType === "run" && newDistance && newDuration) {
+        paceSecPerMi = computePace(newDistance, newDuration);
+      }
+
+      return ctx.db.activity.update({
+        where: { id },
+        data: {
+          ...(fields.date !== undefined && { date: new Date(fields.date) }),
+          ...(fields.type !== undefined && { type: fields.type }),
+          ...(fields.durationSec !== undefined && {
+            durationSec: fields.durationSec,
+          }),
+          ...(fields.distanceMi !== undefined && {
+            distanceMi: fields.distanceMi,
+          }),
+          ...(fields.notes !== undefined && { notes: fields.notes }),
+          paceSecPerMi,
+        },
+      });
+    }),
+
   recentFeed: publicProcedure
     .input(z.object({ limit: z.number().int().default(10) }))
     .query(({ ctx, input }) => {

@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Calendar, ClipboardList, Target } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ICON_STYLE } from "~/components/activity-icons";
 
-const tabs = [
-  { href: "/dashboard", label: "Home", icon: "\u25A0" },
-  { href: "/calendar", label: "Calendar", icon: "\u25A1" },
-  { href: "/activities", label: "Log", icon: "\u2630" },
-  { href: "/goals", label: "Goals", icon: "\u25B2" },
+const tabs: { href: string; label: string; Icon: LucideIcon }[] = [
+  { href: "/dashboard", label: "Home", Icon: Home },
+  { href: "/calendar", label: "Calendar", Icon: Calendar },
+  { href: "/activities", label: "Log", Icon: ClipboardList },
+  { href: "/goals", label: "Goals", Icon: Target },
 ];
 
 export function BottomNav() {
@@ -23,7 +26,7 @@ export function BottomNav() {
             pathname.startsWith(tab.href) ? "text-cream" : "text-cream/50"
           }`}
         >
-          <span className="text-xl">{tab.icon}</span>
+          <tab.Icon size={20} strokeWidth={2.5} {...ICON_STYLE} />
           {tab.label}
         </Link>
       ))}

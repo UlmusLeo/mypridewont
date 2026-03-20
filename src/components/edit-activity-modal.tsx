@@ -1,71 +1,77 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { api } from "~/trpc/react";
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { api } from "~/trpc/react";
 import { DISTANCE_TYPES } from "~/lib/constants";
+import type { ActivityType } from "~/lib/constants";
 import { ActivityTypeGrid } from "~/components/activity-type-grid";
-import type { ActivityType, UserName } from "~/lib/constants";
-import { USERS } from "~/lib/constants";
 import { formatPace, computePace } from "~/lib/utils";
 
-export function LogModal({ onClose }: { onClose: () => void }) {
-  const [activityType, setActivityType] = useState<ActivityType>("run");
-  const [distance, setDistance] = useState("");
-  const [durationMin, setDurationMin] = useState("");
-  const [durationSec, setDurationSec] = useState("");
-  const [notes, setNotes] = useState("");
-  const [dateOption, setDateOption] = useState<"today" | "yesterday" | "pick">("today");
-  const [customDate, setCustomDate] = useState("");
+type ActivityData = {
+  id: string;
+  type: string;
+  date: Date;
+  durationSec: number;
+  distanceMi: number | null;
+  notes: string | null;
+};
 
-  const [currentUser, setCurrentUser] = useState<UserName>("Jake");
-  useEffect(() => {
-    const stored = localStorage.getItem("mpw_user") as UserName | null;
-    if (stored && USERS.includes(stored)) setCurrentUser(stored);
-  }, []);
+export function EditActivityModal({
+  activity,
+  onClose,
+  onSaved,
+}: {
+  activity: ActivityData;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [activityType, setActivityType] = useState<ActivityType>(
+    activity.type as ActivityType,
+  );
+  const [date, setDate] = useState(
+    new Date(activity.date).toISOString().split("T")[0]!,
+  );
+  const [distance, setDistance] = useState(
+    activity.distanceMi ? String(activity.distanceMi) : "",
+  );
+  const [durationMin, setDurationMin] = useState(
+    String(Math.floor(activity.durationSec / 60)),
+  );
+  const [durationSec, setDurationSec] = useState(
+    String(activity.durationSec % 60).padStart(2, "0"),
+  );
+  const [notes, setNotes] = useState(activity.notes ?? "");
 
-  const users = api.user.getAll.useQuery();
   const utils = api.useUtils();
-
-  const createActivity = api.activity.create.useMutation({
+  const updateActivity = api.activity.update.useMutation({
     onSuccess: () => {
       void utils.activity.invalidate();
       void utils.goal.invalidate();
-      onClose();
+      onSaved();
     },
   });
 
-  const dateValue = useMemo(() => {
-    const now = new Date();
-    if (dateOption === "yesterday") {
-      now.setDate(now.getDate() - 1);
-    } else if (dateOption === "pick" && customDate) {
-      return customDate;
-    }
-    return now.toISOString().split("T")[0]!;
-  }, [dateOption, customDate]);
-
-  const totalSec = (parseInt(durationMin || "0", 10) * 60) + parseInt(durationSec || "0", 10);
+  const totalSec =
+    parseInt(durationMin || "0", 10) * 60 +
+    parseInt(durationSec || "0", 10);
   const distNum = parseFloat(distance || "0");
-  const pace = activityType === "run" && distNum > 0 && totalSec > 0
-    ? computePace(distNum, totalSec)
-    : null;
+  const showDistance = DISTANCE_TYPES.includes(activityType);
+  const pace =
+    activityType === "run" && distNum > 0 && totalSec > 0
+      ? computePace(distNum, totalSec)
+      : null;
 
-  const handleSubmit = () => {
-    const userId = users.data?.find((u) => u.name === currentUser)?.id;
-    if (!userId || totalSec <= 0) return;
-
-    createActivity.mutate({
-      userId,
-      date: dateValue,
+  const handleSave = () => {
+    updateActivity.mutate({
+      id: activity.id,
       type: activityType,
+      date,
       durationSec: totalSec,
-      distanceMi: distNum > 0 ? distNum : undefined,
-      notes: notes || undefined,
+      distanceMi: distNum > 0 ? distNum : null,
+      notes: notes || null,
     });
   };
-
-  const showDistance = DISTANCE_TYPES.includes(activityType);
 
   return (
     <div className="fixed inset-0 z-[60] overflow-y-auto bg-ink font-body text-cream">
@@ -80,11 +86,14 @@ export function LogModal({ onClose }: { onClose: () => void }) {
 
       {/* Header */}
       <div className="flex items-center justify-between border-b-2 border-cream/10 px-5 py-3">
-        <button onClick={onClose} className="font-condensed text-sm font-bold uppercase tracking-wider text-ink-faint">
+        <button
+          onClick={onClose}
+          className="font-condensed text-sm font-bold uppercase tracking-wider text-ink-faint"
+        >
           <ArrowLeft size={14} strokeWidth={2.5} className="inline" strokeLinecap="square" strokeLinejoin="miter" /> Back
         </button>
         <div className="font-display text-xl tracking-wider">
-          LOG <span className="text-red">ACTIVITY</span>
+          EDIT <span className="text-red">ACTIVITY</span>
         </div>
         <div className="w-[50px]" />
       </div>
@@ -93,7 +102,7 @@ export function LogModal({ onClose }: { onClose: () => void }) {
         {/* Activity Type Grid */}
         <div className="mb-5">
           <label className="mb-1.5 block font-condensed text-[0.7rem] font-bold uppercase tracking-[0.12em] text-ink-faint">
-            What did you do?
+            Activity type
           </label>
           <ActivityTypeGrid selected={activityType} onSelect={setActivityType} />
         </div>
@@ -101,31 +110,14 @@ export function LogModal({ onClose }: { onClose: () => void }) {
         {/* Date */}
         <div className="mb-5">
           <label className="mb-1.5 block font-condensed text-[0.7rem] font-bold uppercase tracking-[0.12em] text-ink-faint">
-            When?
+            Date
           </label>
-          <div className="flex gap-1.5">
-            {(["today", "yesterday", "pick"] as const).map((opt) => (
-              <button
-                key={opt}
-                onClick={() => setDateOption(opt)}
-                className={`flex-1 rounded-sm border-[1.5px] px-1 py-1.5 text-center font-condensed text-[0.7rem] font-bold uppercase tracking-wider transition-all ${
-                  dateOption === opt
-                    ? "border-cream bg-cream/10 text-cream"
-                    : "border-cream/10 bg-cream/5 text-ink-faint hover:border-cream/25 hover:text-cream"
-                }`}
-              >
-                {opt === "pick" ? "Pick date" : opt}
-              </button>
-            ))}
-          </div>
-          {dateOption === "pick" && (
-            <input
-              type="date"
-              value={customDate}
-              onChange={(e) => setCustomDate(e.target.value)}
-              className="mt-2 w-full rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-3 py-2 text-center font-condensed text-sm font-bold uppercase tracking-wider text-cream focus:border-red focus:outline-none"
-            />
-          )}
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-3 py-2 text-center font-condensed text-sm font-bold uppercase tracking-wider text-cream focus:border-red focus:outline-none"
+          />
         </div>
 
         {/* Distance + Duration */}
@@ -156,7 +148,6 @@ export function LogModal({ onClose }: { onClose: () => void }) {
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="00"
                 value={durationMin}
                 onChange={(e) => setDurationMin(e.target.value)}
                 className="min-w-0 flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
@@ -165,7 +156,6 @@ export function LogModal({ onClose }: { onClose: () => void }) {
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="00"
                 value={durationSec}
                 onChange={(e) => setDurationSec(e.target.value)}
                 className="min-w-0 flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
@@ -183,8 +173,12 @@ export function LogModal({ onClose }: { onClose: () => void }) {
             <span className="font-condensed text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
               Pace
             </span>
-            <span className="font-display text-3xl leading-none text-cream">{formatPace(pace).replace("/mi", "")}</span>
-            <span className="font-condensed text-[0.7rem] font-semibold uppercase tracking-wider text-ink-faint">/mi</span>
+            <span className="font-display text-3xl leading-none text-cream">
+              {formatPace(pace).replace("/mi", "")}
+            </span>
+            <span className="font-condensed text-[0.7rem] font-semibold uppercase tracking-wider text-ink-faint">
+              /mi
+            </span>
           </div>
         )}
 
@@ -196,18 +190,18 @@ export function LogModal({ onClose }: { onClose: () => void }) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Easy pace around the park..."
+            placeholder="Any notes..."
             className="min-h-[60px] w-full resize-y rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-3 py-2.5 text-sm text-cream placeholder:text-cream/20 focus:border-red focus:outline-none"
           />
         </div>
 
-        {/* Submit */}
+        {/* Save button */}
         <button
-          onClick={handleSubmit}
-          disabled={createActivity.isPending || totalSec <= 0}
+          onClick={handleSave}
+          disabled={updateActivity.isPending || totalSec <= 0}
           className="w-full rounded-sm border-2 border-cream bg-red px-4 py-2.5 font-display text-xl tracking-[0.1em] text-cream shadow-[3px_3px_0_rgba(245,240,232,0.15)] active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_rgba(245,240,232,0.15)] disabled:opacity-50"
         >
-          LOG IT
+          SAVE CHANGES
         </button>
       </div>
     </div>

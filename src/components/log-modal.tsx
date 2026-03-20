@@ -146,7 +146,7 @@ export function LogModal({ onClose }: { onClose: () => void }) {
         {/* Distance + Duration */}
         <div className="mb-5 flex gap-3">
           {showDistance && (
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <label className="mb-1.5 block font-condensed text-[0.7rem] font-bold uppercase tracking-[0.12em] text-ink-faint">
                 Distance
               </label>
@@ -156,14 +156,14 @@ export function LogModal({ onClose }: { onClose: () => void }) {
                 placeholder="0.0"
                 value={distance}
                 onChange={(e) => setDistance(e.target.value)}
-                className="w-full rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl tracking-wider text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
+                className="w-full rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
               />
               <div className="mt-0.5 text-center font-condensed text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
                 Miles
               </div>
             </div>
           )}
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <label className="mb-1.5 block font-condensed text-[0.7rem] font-bold uppercase tracking-[0.12em] text-ink-faint">
               Duration
             </label>
@@ -174,7 +174,7 @@ export function LogModal({ onClose }: { onClose: () => void }) {
                 placeholder="00"
                 value={durationMin}
                 onChange={(e) => setDurationMin(e.target.value)}
-                className="flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl tracking-wider text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
+                className="min-w-0 flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
               />
               <span className="font-display text-2xl text-ink-faint">:</span>
               <input
@@ -183,7 +183,7 @@ export function LogModal({ onClose }: { onClose: () => void }) {
                 placeholder="00"
                 value={durationSec}
                 onChange={(e) => setDurationSec(e.target.value)}
-                className="flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl tracking-wider text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
+                className="min-w-0 flex-1 rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-2 py-2 text-center font-display text-2xl text-cream placeholder:text-cream/15 focus:border-red focus:outline-none"
               />
             </div>
             <div className="mt-0.5 text-center font-condensed text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">

@@ -22,7 +22,7 @@ export function Nav() {
 
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between bg-ink px-5 py-2.5">
-      <Link href="/dashboard" className="font-display text-2xl leading-none tracking-wider text-cream">
+      <Link href="/dashboard" className="font-display text-2xl leading-none tracking-wider text-cream sm:invisible">
         MY<span className="text-red">PRIDE</span>WONT
       </Link>
       <div className="flex items-center gap-4">

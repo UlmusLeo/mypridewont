@@ -17,9 +17,15 @@ export function ImportCard({ userId, name, hasGoals }: Props) {
   const utils = api.useUtils();
 
   const importPlan = api.goal.importPlan.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       void utils.goal.invalidate();
       setPlanText("");
+    },
+  });
+
+  const clearPlan = api.goal.clearPlan.useMutation({
+    onSuccess: () => {
+      void utils.goal.invalidate();
     },
   });
 
@@ -73,6 +79,15 @@ export function ImportCard({ userId, name, hasGoals }: Props) {
             Apply Plan
           </button>
         </div>
+        {hasGoals && (
+          <button
+            onClick={() => clearPlan.mutate({ userId })}
+            disabled={clearPlan.isPending}
+            className="mt-2 w-full rounded-sm border-[1.5px] border-ink/30 py-2 text-center font-condensed text-xs font-bold uppercase tracking-wider text-ink-faint active:translate-x-px active:translate-y-px disabled:opacity-50"
+          >
+            Clear Plan
+          </button>
+        )}
       </div>
     </div>
   );

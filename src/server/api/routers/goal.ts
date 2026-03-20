@@ -44,6 +44,12 @@ export const goalRouter = createTRPCRouter({
       return ctx.db.weeklyGoal.delete({ where: { id: input.id } });
     }),
 
+  clearPlan: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.weeklyGoal.deleteMany({ where: { userId: input.userId } });
+    }),
+
   importPlan: publicProcedure
     .input(
       z.object({

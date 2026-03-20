@@ -1,0 +1,40 @@
+# Phase 1: Base Building (Mar-Jun 2026)
+run 3mi x2, mar 23 - apr 5
+run 3mi x2, apr 6 - apr 19
+run 3.5mi x2, apr 20 - may 3
+run 3mi x3, may 4 - may 17
+run 3.5mi x3, may 18 - may 31
+run 3.5mi x3, jun 1 - jun 14
+run 4mi x3, jun 15 - jun 28
+# Recovery
+run 3mi x2, jun 29 - jul 12
+
+# Phase 2: Building Strength (Jul-Oct 2026)
+run 4mi x3, jul 13 - aug 2
+run 4mi x3, aug 3 - aug 23
+run 4mi x4, aug 24 - sep 13
+run 4.5mi x4, sep 14 - oct 4
+run 5mi x4, oct 5 - oct 18
+# Recovery
+run 4mi x3, oct 19 - nov 1
+
+# Phase 3: Endurance (Nov 2026-Jan 2027)
+run 5mi x4, nov 2 - nov 22
+run 5mi x4, nov 23 - dec 13
+run 5mi x4, dec 14 - jan 3
+# Recovery
+run 4mi x3, jan 4 - jan 17
+
+# Phase 4: Marathon Specific (Feb-Apr 2027)
+run 5mi x4, jan 18 - jan 31
+run 5mi x4, feb 1 - feb 14
+run 5mi x4, feb 15 - feb 28
+run 5mi x4, mar 1 - mar 14
+run 5mi x4, mar 15 - mar 28
+run 5mi x4, mar 29 - apr 11
+
+# Phase 5: Taper
+run 4mi x4, apr 12 - apr 25
+run 3mi x3, apr 26 - may 9
+# Race week
+run 2mi x2, may 10 - may 17

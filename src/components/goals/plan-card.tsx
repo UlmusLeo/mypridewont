@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { UserName } from "~/lib/constants";
 import { USER_TEXT_CLASS } from "~/lib/constants";
 import { AddGoalForm } from "~/components/goals/add-goal-form";
+import { api } from "~/trpc/react";
 
 type GoalBar = {
   id: string;
@@ -24,6 +25,11 @@ type Props = {
 
 export function PlanCard({ userId, name, shameCount, goals, months, nowPct }: Props) {
   const [showAdd, setShowAdd] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const utils = api.useUtils();
+  const deleteGoal = api.goal.delete.useMutation({
+    onSuccess: () => void utils.goal.invalidate(),
+  });
 
   const barColorClass: Record<UserName, string> = {
     Jake: "bg-blue-steel/20 text-blue-steel",
@@ -65,8 +71,14 @@ export function PlanCard({ userId, name, shameCount, goals, months, nowPct }: Pr
 
         {/* Goal bars */}
         {goals.map((g) => (
-          <div key={g.id} className="mb-1 flex items-center last:mb-0">
-            <div className="w-[70px] shrink-0 truncate pr-2 font-condensed text-[0.7rem] font-semibold uppercase tracking-wider text-ink-light capitalize">
+          <div
+            key={g.id}
+            className={`mb-1 flex items-center last:mb-0 ${deleteMode ? "cursor-pointer" : ""}`}
+            onClick={() => {
+              if (deleteMode) deleteGoal.mutate({ id: g.id });
+            }}
+          >
+            <div className={`w-[70px] shrink-0 truncate pr-2 font-condensed text-[0.7rem] font-semibold uppercase tracking-wider capitalize ${deleteMode ? "text-red" : "text-ink-light"}`}>
               {g.label}
             </div>
             <div className="relative flex h-[18px] flex-1">
@@ -83,7 +95,7 @@ export function PlanCard({ userId, name, shameCount, goals, months, nowPct }: Pr
               <div style={{ width: `${g.startPct}%` }} />
               {/* Bar */}
               <div
-                className={`flex items-center justify-center rounded-sm font-condensed text-[0.6rem] font-bold uppercase tracking-wider ${barColorClass[name]}`}
+                className={`flex items-center justify-center rounded-sm font-condensed text-[0.6rem] font-bold uppercase tracking-wider ${deleteMode ? "bg-red/20 text-red" : barColorClass[name]}`}
                 style={{ width: `${g.widthPct}%` }}
               >
                 x{g.frequency}/wk
@@ -92,15 +104,29 @@ export function PlanCard({ userId, name, shameCount, goals, months, nowPct }: Pr
           </div>
         ))}
 
-        {/* Add goal button */}
-        {!showAdd && (
-          <button
-            onClick={() => setShowAdd(true)}
-            className="mt-1.5 w-full rounded-sm border-[1.5px] border-dashed border-divider py-1.5 text-center font-condensed text-[0.7rem] font-bold uppercase tracking-wider text-ink-faint hover:border-ink-light hover:text-ink-light"
-          >
-            + Add Goal
-          </button>
-        )}
+        {/* Action buttons */}
+        <div className="mt-1.5 flex gap-1.5">
+          {!showAdd && !deleteMode && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="flex-1 rounded-sm border-[1.5px] border-dashed border-divider py-1.5 text-center font-condensed text-[0.7rem] font-bold uppercase tracking-wider text-ink-faint hover:border-ink-light hover:text-ink-light"
+            >
+              + Add Goal
+            </button>
+          )}
+          {goals.length > 0 && (
+            <button
+              onClick={() => setDeleteMode(!deleteMode)}
+              className={`rounded-sm border-[1.5px] px-3 py-1.5 font-condensed text-[0.7rem] font-bold uppercase tracking-wider ${
+                deleteMode
+                  ? "border-red bg-red text-cream"
+                  : "border-dashed border-divider text-ink-faint hover:border-ink-light hover:text-ink-light"
+              }`}
+            >
+              {deleteMode ? "Done" : "Delete"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Inline add goal form */}

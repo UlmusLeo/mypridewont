@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Satellite } from "lucide-react";
 import { api } from "~/trpc/react";
 import type { ActivityType } from "~/lib/constants";
 import { ActivityTypeGrid } from "~/components/activity-type-grid";
@@ -18,18 +18,22 @@ export function StartTimerModal({
 }) {
   const [activityType, setActivityType] = useState<ActivityType>("run");
   const [trackGps, setTrackGps] = useState(false);
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "locating" | "ready" | "error">("idle");
   const [gpsError, setGpsError] = useState<string | null>(null);
   const showGpsToggle = isGpsActivityType(activityType);
 
   const handleGpsToggle = useCallback((on: boolean) => {
     if (on) {
+      setTrackGps(true);
+      setGpsStatus("locating");
+      setGpsError(null);
       navigator.geolocation.getCurrentPosition(
         () => {
-          setTrackGps(true);
-          setGpsError(null);
+          setGpsStatus("ready");
         },
         (err) => {
           setTrackGps(false);
+          setGpsStatus("error");
           setGpsError(
             err.code === err.PERMISSION_DENIED
               ? "Location permission denied"
@@ -40,6 +44,7 @@ export function StartTimerModal({
       );
     } else {
       setTrackGps(false);
+      setGpsStatus("idle");
       setGpsError(null);
     }
   }, []);
@@ -100,11 +105,18 @@ export function StartTimerModal({
             <button
               type="button"
               onClick={() => handleGpsToggle(!trackGps)}
-              className="flex w-full items-center justify-between rounded-sm border-[1.5px] border-cream/10 bg-cream/5 px-3 py-2.5"
+              className={`flex w-full items-center justify-between rounded-sm border-2 px-3 py-2.5 ${
+                trackGps
+                  ? "border-[#22c55e] bg-[#22c55e]/10"
+                  : "border-cream/10 bg-cream/5"
+              }`}
             >
-              <span className="font-condensed text-sm font-bold uppercase tracking-[0.12em] text-cream/80">
-                Track GPS
-              </span>
+              <div className="flex items-center gap-2">
+                <Satellite size={14} strokeWidth={2.5} className={trackGps ? "text-[#22c55e]" : "text-ink-faint"} strokeLinecap="square" strokeLinejoin="miter" />
+                <span className={`font-condensed text-sm font-bold uppercase tracking-[0.12em] ${trackGps ? "text-[#22c55e]" : "text-cream/80"}`}>
+                  Track GPS
+                </span>
+              </div>
               <div
                 className={`h-5 w-9 rounded-full border transition-colors ${
                   trackGps
@@ -119,8 +131,13 @@ export function StartTimerModal({
                 />
               </div>
             </button>
+            {gpsStatus === "locating" && (
+              <div className="mt-1.5 font-condensed text-xs font-semibold uppercase tracking-[0.1em] text-[#22c55e]/70">
+                Fetching location...
+              </div>
+            )}
             {gpsError && (
-              <div className="mt-1 font-condensed text-xs text-red">{gpsError}</div>
+              <div className="mt-1.5 font-condensed text-xs font-semibold uppercase tracking-[0.1em] text-red">{gpsError}</div>
             )}
           </div>
         )}

@@ -33,7 +33,7 @@ export function Fab() {
   );
 
   const isGpsActive = !!activeTimer.data?.trackGps;
-  useGpsTracking(isGpsActive && !showEndTimer, userId ?? "");
+  const gpsStatus = useGpsTracking(isGpsActive && !showEndTimer, userId ?? "");
 
   const timerExists = !!activeTimer.data;
 
@@ -66,6 +66,7 @@ export function Fab() {
           userId={userId!}
           onEnd={() => setShowEndTimer(true)}
           onLock={activeTimer.data.trackGps ? () => setShowLockScreen(true) : undefined}
+          gpsStatus={activeTimer.data.trackGps ? gpsStatus : undefined}
         />
       )}
 

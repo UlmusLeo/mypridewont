@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EditButton } from "~/components/edit-activity-modal-trigger";
+import { DeleteButton } from "~/components/delete-activity-button";
 import { RouteMapLoader } from "~/components/route-map-loader";
 
 export default async function ActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -34,14 +35,17 @@ export default async function ActivityDetailPage({ params }: { params: Promise<{
               {formatDateLong(new Date(activity.date))}
             </div>
           </div>
-          <EditButton activity={{
-            id: activity.id,
-            type: activity.type,
-            date: activity.date,
-            durationSec: activity.durationSec,
-            distanceMi: activity.distanceMi,
-            notes: activity.notes,
-          }} />
+          <div className="flex items-center gap-1.5">
+            <EditButton activity={{
+              id: activity.id,
+              type: activity.type,
+              date: activity.date,
+              durationSec: activity.durationSec,
+              distanceMi: activity.distanceMi,
+              notes: activity.notes,
+            }} />
+            <DeleteButton activityId={activity.id} />
+          </div>
         </div>
       </div>
 

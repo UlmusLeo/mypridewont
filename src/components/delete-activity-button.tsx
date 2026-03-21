@@ -45,6 +45,7 @@ export function DeleteButton({ activityId }: { activityId: string }) {
       aria-label="Delete activity"
     >
       <Trash2 size={14} strokeWidth={2.5} strokeLinecap="square" strokeLinejoin="miter" />
+      Delete
     </button>
   );
 }

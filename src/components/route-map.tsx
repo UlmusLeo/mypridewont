@@ -27,17 +27,51 @@ export function RouteMap({ polyline }: { polyline: string }) {
     });
     mapRef.current = map;
 
+    // Desaturated map tiles via CSS filter on the tile pane
+    const tilePane = map.getPane("tilePane");
+    if (tilePane) {
+      tilePane.style.filter = "saturate(0.15) contrast(1.1) brightness(0.95)";
+    }
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
     }).addTo(map);
 
+    // Sepia-tinted overlay to blend with cream/ink palette
+    const overlayPane = map.getPane("overlayPane");
+    if (overlayPane) {
+      overlayPane.style.mixBlendMode = "multiply";
+    }
+
     const line = L.polyline(latLngs, {
       color: "#c4342d",
-      weight: 3,
-      opacity: 0.9,
+      weight: 3.5,
+      opacity: 1,
+      lineCap: "square",
+      lineJoin: "miter",
     }).addTo(map);
 
-    map.fitBounds(line.getBounds(), { padding: [20, 20] });
+    // Start/end markers as simple circles
+    if (latLngs.length > 0) {
+      L.circleMarker(latLngs[0]!, {
+        radius: 5,
+        color: "#1a1714",
+        fillColor: "#22c55e",
+        fillOpacity: 1,
+        weight: 2,
+      }).addTo(map);
+      if (latLngs.length > 1) {
+        L.circleMarker(latLngs[latLngs.length - 1]!, {
+          radius: 5,
+          color: "#1a1714",
+          fillColor: "#c4342d",
+          fillOpacity: 1,
+          weight: 2,
+        }).addTo(map);
+      }
+    }
+
+    map.fitBounds(line.getBounds(), { padding: [30, 30] });
 
     return () => {
       map.remove();
@@ -45,5 +79,9 @@ export function RouteMap({ polyline }: { polyline: string }) {
     };
   }, [polyline]);
 
-  return <div ref={containerRef} className="h-48 w-full rounded-sm" />;
+  return (
+    <div className="relative z-0 overflow-hidden rounded-sm border-2 border-ink">
+      <div ref={containerRef} className="h-52 w-full" />
+    </div>
+  );
 }

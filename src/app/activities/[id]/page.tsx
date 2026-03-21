@@ -115,7 +115,8 @@ export default async function ActivityDetailPage({ params }: { params: Promise<{
 
       {/* Route map */}
       {activity.routePolyline && (
-        <div className="mx-5 mb-4">
+        <div className="px-5 py-4">
+          <div className="mb-2 font-display text-sm uppercase tracking-[0.15em] text-ink-light">Route</div>
           <RouteMapLoader polyline={activity.routePolyline} />
         </div>
       )}

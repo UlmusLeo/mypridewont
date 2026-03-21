@@ -7,6 +7,7 @@ import { segmentsSchema, computeTotalSeconds } from "~/lib/timer";
 import { ACTIVITY_LABELS, DISTANCE_TYPES } from "~/lib/constants";
 import type { ActivityType } from "~/lib/constants";
 import { formatDuration } from "~/lib/utils";
+import { gpsPointsSchema, haversineDistanceMi } from "~/lib/geo";
 
 type Timer = {
   id: string;
@@ -15,6 +16,8 @@ type Timer = {
   startedAt: Date;
   segments: unknown;
   status: string;
+  trackGps: boolean;
+  gpsPoints: unknown;
 };
 
 export function EndTimerModal({
@@ -34,6 +37,12 @@ export function EndTimerModal({
   const activityLabel = ACTIVITY_LABELS[activityType] ?? timer.activityType;
   const showDistance = DISTANCE_TYPES.includes(activityType);
 
+  const gpsPoints = timer.gpsPoints
+    ? gpsPointsSchema.parse(timer.gpsPoints)
+    : [];
+  const gpsDistanceMi =
+    gpsPoints.length > 0 ? haversineDistanceMi(gpsPoints) : null;
+
   // Duration override — pre-filled with computed time
   const computedMin = Math.floor(computedSec / 60);
   const computedRemSec = computedSec % 60;
@@ -41,7 +50,9 @@ export function EndTimerModal({
   const [durationSec, setDurationSec] = useState(
     String(computedRemSec).padStart(2, "0"),
   );
-  const [distance, setDistance] = useState("");
+  const [distance, setDistance] = useState(
+    gpsDistanceMi !== null ? gpsDistanceMi.toFixed(2) : "",
+  );
   const [notes, setNotes] = useState("");
 
   const utils = api.useUtils();
@@ -152,6 +163,11 @@ export function EndTimerModal({
             <div className="mt-0.5 text-center font-condensed text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
               Miles
             </div>
+            {gpsDistanceMi !== null && (
+              <div className="mt-0.5 text-center font-condensed text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-[#22c55e]/70">
+                from GPS
+              </div>
+            )}
           </div>
         )}
 

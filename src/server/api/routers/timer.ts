@@ -3,11 +3,12 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { segmentsSchema } from "~/lib/timer";
 import type { Segment } from "~/lib/timer";
 import { computePace } from "~/lib/utils";
+import { gpsPointsSchema, haversineDistanceMi, encodePolyline } from "~/lib/geo";
 import { TRPCError } from "@trpc/server";
 
 export const timerRouter = createTRPCRouter({
   start: publicProcedure
-    .input(z.object({ userId: z.string(), activityType: z.string() }))
+    .input(z.object({ userId: z.string(), activityType: z.string(), trackGps: z.boolean().optional() }))
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.db.activeTimer.findUnique({
         where: { userId: input.userId },
@@ -26,6 +27,7 @@ export const timerRouter = createTRPCRouter({
           activityType: input.activityType,
           segments: [{ start: now }],
           status: "running",
+          trackGps: input.trackGps ?? false,
         },
       });
     }),
@@ -70,6 +72,32 @@ export const timerRouter = createTRPCRouter({
       });
     }),
 
+  addGpsPoints: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        points: gpsPointsSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const timer = await ctx.db.activeTimer.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!timer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No active timer" });
+      }
+
+      const existing = timer.gpsPoints
+        ? gpsPointsSchema.parse(timer.gpsPoints)
+        : [];
+      const updated = [...existing, ...input.points];
+
+      return ctx.db.activeTimer.update({
+        where: { userId: input.userId },
+        data: { gpsPoints: updated },
+      });
+    }),
+
   end: publicProcedure
     .input(
       z.object({
@@ -106,14 +134,29 @@ export const timerRouter = createTRPCRouter({
 
       const durationSec = input.durationOverrideSec ?? computedSec;
 
+      // GPS: compute distance and encode polyline if GPS data exists
+      const rawGpsPoints = timer.gpsPoints
+        ? gpsPointsSchema.parse(timer.gpsPoints)
+        : [];
+      const hasGpsData = rawGpsPoints.length > 0;
+
+      const gpsDistanceMi = hasGpsData
+        ? haversineDistanceMi(rawGpsPoints)
+        : null;
+      const routePolyline = hasGpsData
+        ? encodePolyline(rawGpsPoints)
+        : null;
+
+      // Use provided distance, fall back to GPS-computed distance
+      const finalDistanceMi = input.distanceMi ?? gpsDistanceMi ?? null;
+
       // Compute pace for runs
       const paceSecPerMi =
-        input.distanceMi && timer.activityType === "run"
-          ? computePace(input.distanceMi, durationSec)
+        finalDistanceMi && timer.activityType === "run"
+          ? computePace(finalDistanceMi, durationSec)
           : null;
 
       // Use date-only string so @db.Date stores the correct calendar day
-      // (matches the pattern in activity.create where input.date is "YYYY-MM-DD")
       const startDate = timer.startedAt.toISOString().split("T")[0]!;
 
       // Atomic: create activity + delete timer
@@ -124,8 +167,9 @@ export const timerRouter = createTRPCRouter({
             date: new Date(startDate),
             type: timer.activityType,
             durationSec,
-            distanceMi: input.distanceMi ?? null,
+            distanceMi: finalDistanceMi,
             paceSecPerMi,
+            routePolyline,
             notes: input.notes ?? null,
             source: "timer",
           },

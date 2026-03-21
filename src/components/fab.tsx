@@ -9,11 +9,14 @@ import { LogModal } from "~/components/log-modal";
 import { StartTimerModal } from "~/components/start-timer-modal";
 import { TimerPanel } from "~/components/timer-panel";
 import { EndTimerModal } from "~/components/end-timer-modal";
+import { useGpsTracking } from "~/hooks/use-gps-tracking";
+import { GpsLockScreen } from "~/components/gps-lock-screen";
 
 export function Fab() {
   const [showLogModal, setShowLogModal] = useState(false);
   const [showStartTimer, setShowStartTimer] = useState(false);
   const [showEndTimer, setShowEndTimer] = useState(false);
+  const [showLockScreen, setShowLockScreen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<UserName>("Jake");
   useEffect(() => {
@@ -28,6 +31,9 @@ export function Fab() {
     { userId: userId! },
     { enabled: !!userId, refetchInterval: false },
   );
+
+  const isGpsActive = !!activeTimer.data?.trackGps;
+  useGpsTracking(isGpsActive && !showEndTimer, userId ?? "");
 
   const timerExists = !!activeTimer.data;
 
@@ -54,11 +60,22 @@ export function Fab() {
       )}
 
       {/* Timer panel — shown when timer is active */}
-      {timerExists && activeTimer.data && !showEndTimer && (
+      {timerExists && activeTimer.data && !showEndTimer && !showLockScreen && (
         <TimerPanel
           timer={activeTimer.data}
           userId={userId!}
           onEnd={() => setShowEndTimer(true)}
+          onLock={activeTimer.data.trackGps ? () => setShowLockScreen(true) : undefined}
+        />
+      )}
+
+      {/* GPS Lock Screen */}
+      {showLockScreen && activeTimer.data && (
+        <GpsLockScreen
+          segments={activeTimer.data.segments}
+          activityType={activeTimer.data.activityType}
+          isRunning={activeTimer.data.status === "running"}
+          onUnlock={() => setShowLockScreen(false)}
         />
       )}
 

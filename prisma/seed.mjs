@@ -1,10 +1,11 @@
 // Plain JS seed script for Docker production startup.
-// Uses require() so the generated Prisma client resolves relative to this file.
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
-const { PrismaClient } = require("../generated/prisma");
+const { PrismaClient } = require("../generated/prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.user.upsert({

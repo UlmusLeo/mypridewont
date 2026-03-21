@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Pause, Play, Square } from "lucide-react";
+import { Pause, Play, Square, Lock } from "lucide-react";
 import { api } from "~/trpc/react";
 import { segmentsSchema, computeTotalSeconds } from "~/lib/timer";
 import { ACTIVITY_LABELS } from "~/lib/constants";
@@ -14,16 +14,19 @@ type Timer = {
   startedAt: Date;
   segments: unknown;
   status: string;
+  trackGps: boolean;
 };
 
 export function TimerPanel({
   timer,
   userId,
   onEnd,
+  onLock,
 }: {
   timer: Timer;
   userId: string;
   onEnd: () => void;
+  onLock?: () => void;
 }) {
   const segments = segmentsSchema.parse(timer.segments);
   const isRunning = timer.status === "running";
@@ -120,6 +123,22 @@ export function TimerPanel({
         <div className="mt-1 font-condensed text-xs font-semibold uppercase tracking-[0.12em] text-ink-faint">
           Segment {segmentNum}
         </div>
+
+        {/* Lock button — GPS only */}
+        {timer.trackGps && onLock && (
+          <div className="mt-2">
+            <button
+              onClick={onLock}
+              className="flex w-full items-center justify-center gap-1.5 rounded-sm border-[1.5px] border-cream/15 bg-cream/5 px-3 py-1.5"
+              aria-label="Enter GPS lock screen"
+            >
+              <Lock size={12} strokeWidth={2.5} className="text-ink-faint" strokeLinecap="square" strokeLinejoin="miter" />
+              <span className="font-condensed text-xs font-bold uppercase tracking-[0.12em] text-ink-faint">
+                Lock Screen
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Buttons */}
         <div className="mt-3 flex gap-2">

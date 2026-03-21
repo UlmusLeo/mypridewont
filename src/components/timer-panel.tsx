@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Pause, Play, Square } from "lucide-react";
+import { Pause, Play, Square, Lock, Satellite } from "lucide-react";
 import { api } from "~/trpc/react";
 import { segmentsSchema, computeTotalSeconds } from "~/lib/timer";
 import { ACTIVITY_LABELS } from "~/lib/constants";
@@ -14,16 +14,21 @@ type Timer = {
   startedAt: Date;
   segments: unknown;
   status: string;
+  trackGps: boolean;
 };
 
 export function TimerPanel({
   timer,
   userId,
   onEnd,
+  onLock,
+  gpsStatus,
 }: {
   timer: Timer;
   userId: string;
   onEnd: () => void;
+  onLock?: () => void;
+  gpsStatus?: { pointCount: number; error: string | null };
 }) {
   const segments = segmentsSchema.parse(timer.segments);
   const isRunning = timer.status === "running";
@@ -95,16 +100,32 @@ export function TimerPanel({
       )}
 
       <div className="px-4 py-3">
-        {/* Activity + Status */}
+        {/* Activity + Status + GPS indicator */}
         <div className="mb-1 flex items-center justify-between">
           <span className="font-condensed text-xs font-bold uppercase tracking-[0.12em] text-ink-faint">
             {activityLabel}
           </span>
-          {isPaused && (
-            <span className="font-condensed text-xs font-bold uppercase tracking-[0.12em] text-[#eab308]">
-              Paused
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {isPaused && (
+              <span className="font-condensed text-xs font-bold uppercase tracking-[0.12em] text-[#eab308]">
+                Paused
+              </span>
+            )}
+            {timer.trackGps && gpsStatus && (
+              <div className="flex items-center gap-1">
+                <Satellite
+                  size={12}
+                  strokeWidth={2.5}
+                  className={gpsStatus.error ? "text-red" : "text-[#22c55e]"}
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                />
+                <span className={`font-condensed text-[0.65rem] font-bold uppercase tracking-[0.1em] ${gpsStatus.error ? "text-red" : "text-[#22c55e]/70"}`}>
+                  {gpsStatus.error ?? `${gpsStatus.pointCount} pts`}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Timer display */}
@@ -150,6 +171,16 @@ export function TimerPanel({
           >
             <Square size={32} strokeWidth={2.5} className="text-cream" fill="#f5f0e8" strokeLinecap="square" strokeLinejoin="miter" />
           </button>
+          {/* Lock button — GPS only, same height as pause/stop */}
+          {timer.trackGps && onLock && (
+            <button
+              onClick={onLock}
+              className="flex items-center justify-center rounded-sm border-2 border-cream/15 bg-cream/5 px-4 py-2.5 shadow-card active:translate-x-px active:translate-y-px active:shadow-card-sm"
+              aria-label="Enter GPS lock screen"
+            >
+              <Lock size={32} strokeWidth={2.5} className="text-ink-faint" strokeLinecap="square" strokeLinejoin="miter" />
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -79,6 +79,8 @@ model ActiveTimer {
   startedAt    DateTime @default(now())
   segments     Json     // Array of { start: ISO string, end?: ISO string }
   status       String   // "running" | "paused"
+  trackGps     Boolean  @default(false)
+  gpsPoints    Json?    // Array of { lat, lng, accuracy, timestamp }
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

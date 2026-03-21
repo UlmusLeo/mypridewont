@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EditButton } from "~/components/edit-activity-modal-trigger";
+import { RouteMapLoader } from "~/components/route-map-loader";
 
 export default async function ActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -108,10 +109,10 @@ export default async function ActivityDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      {/* Route map placeholder */}
+      {/* Route map */}
       {activity.routePolyline && (
-        <div className="mx-5 mb-4 flex h-48 items-center justify-center rounded-sm border-2 border-dashed border-divider bg-cream-dark">
-          <span className="font-condensed text-sm text-ink-faint">Route map (requires Leaflet — coming with Strava sync)</span>
+        <div className="mx-5 mb-4">
+          <RouteMapLoader polyline={activity.routePolyline} />
         </div>
       )}
     </Shell>
